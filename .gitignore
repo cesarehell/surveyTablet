@@ -1,0 +1,90 @@
+# ============================
+# ANDROID / ANDROID STUDIO
+# ============================
+
+# Build
+/build/
+***/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Generated
+*.iml
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.apks
+*.dex
+*.class
+
+# Keystore (NO subir claves)
+*.jks
+*.keystore
+*.pem
+
+# Android Studio
+.idea/
+.idea/*
+*.ipr
+*.iws
+
+# Signing / Secrets
+signing.properties
+keystore.properties
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# NDK / CMake
+obj/
+*.so
+
+# Kotlin
+*.kts~
+
+# Crashlytics/Firebase
+app/google-services.json
+app/google-services.plist
+fabric.properties
+
+# Gradle
+gradle.properties
+/.gradle/
+gradle-app.setting
+
+# Jetifier
+.jetifier/
+
+# Lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+
+# Testing
+*.hprof
+
+# ============================
+# OPTIONAL EXCLUSIONS
+# ============================
+
+# Ignore local build cache
+.buildcache/
+
+# Ignore fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Ignore navigation editor temp files
+.navigation/
+
+# Ignore build config (custom)
+buildConfig/

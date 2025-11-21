@@ -1,0 +1,1 @@
+-keep class com.mr.restaurant.survey.** { *; }

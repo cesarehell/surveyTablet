@@ -1,0 +1,12 @@
+<resources>
+    <!-- Tu tema de app para Compose -->
+    <style name="Theme.SurveyTabletApp" parent="Theme.Material3.DayNight">
+        <!-- Quitar ActionBar/Title como hacía NoActionBar -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <!-- Opcional: barras transparentes -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>
