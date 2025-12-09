@@ -17,7 +17,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "DEFAULT_BASE_URL", "\"http://143.198.73.29:3040/\"")
+        buildConfigField("String", "DEFAULT_BASE_URL", "\"http://192.168.100.69:3040/\"")
         buildConfigField("String", "DEFAULT_TENANT", "\"mr-restaurant\"")
         vectorDrawables { useSupportLibrary = true }
     }

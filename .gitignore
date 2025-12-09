@@ -1,16 +1,25 @@
-# ============================
+# ============================================
 # ANDROID / ANDROID STUDIO
-# ============================
+# ============================================
 
-# Build
-/build/
-***/build/
+# Build outputs (generated — DO NOT COMMIT)
+*/build/
+build/
+app/build/
+
+# Keep Gradle wrapper (MUST BE COMMITTED)
 !gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!gradlew
+!gradlew.bat
 
-# Generated
-*.iml
+# Do NOT commit the Gradle local cache
 .gradle/
+
+# Generated project files
 local.properties
+*.iml
+.kotlinc/
 captures/
 .externalNativeBuild/
 .cxx/
@@ -19,72 +28,91 @@ captures/
 *.dex
 *.class
 
-# Keystore (NO subir claves)
+# ============================================
+# KEYSTORE / SECRETS
+# ============================================
+
 *.jks
 *.keystore
 *.pem
-
-# Android Studio
-.idea/
-.idea/*
-*.ipr
-*.iws
-
-# Signing / Secrets
 signing.properties
 keystore.properties
 
-# Logs
+# ============================================
+# IDE FILES (ANDROID STUDIO / INTELLIJ)
+# ============================================
+
+.idea/
+*.ipr
+*.iws
+.shelf/
+
+# ============================================
+# LOGS
+# ============================================
+
 *.log
 
-# OS files
+# ============================================
+# OS-SPECIFIC FILES
+# ============================================
+
 .DS_Store
 Thumbs.db
 
-# NDK / CMake
+# ============================================
+# NDK / CMAKE
+# ============================================
+
 obj/
 *.so
 
-# Kotlin
+# ============================================
+# KOTLIN
+# ============================================
+
 *.kts~
 
-# Crashlytics/Firebase
+# ============================================
+# FIREBASE / CRASHLYTICS
+# ============================================
+
 app/google-services.json
 app/google-services.plist
 fabric.properties
 
-# Gradle
-gradle.properties
-/.gradle/
-gradle-app.setting
+# ============================================
+# JETIFIER
+# ============================================
 
-# Jetifier
 .jetifier/
 
-# Lint
+# ============================================
+# LINT
+# ============================================
+
 lint/intermediates/
 lint/generated/
 lint/outputs/
 lint/tmp/
 
-# Testing
+# ============================================
+# MEMORY DUMPS
+# ============================================
+
 *.hprof
 
-# ============================
-# OPTIONAL EXCLUSIONS
-# ============================
+# ============================================
+# PROJECT-SPECIFIC
+# ============================================
 
-# Ignore local build cache
-.buildcache/
-
-# Ignore fastlane
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots
-fastlane/test_output
-
-# Ignore navigation editor temp files
+.githooks/
 .navigation/
-
-# Ignore build config (custom)
 buildConfig/
+
+# Auto-generated adaptive launcher icons (safe to ignore unless custom icons are added)
+app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+# Local Gradle config (contains local machine settings)
+gradle.properties
