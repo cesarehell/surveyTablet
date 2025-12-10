@@ -110,9 +110,5 @@ lint/tmp/
 .navigation/
 buildConfig/
 
-# Auto-generated adaptive launcher icons (safe to ignore unless custom icons are added)
-app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
-app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
-
 # Local Gradle config (contains local machine settings)
 gradle.properties
