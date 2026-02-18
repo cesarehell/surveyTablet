@@ -7,7 +7,7 @@ plugins {
 }
 android {
 	namespace = "com.mr.restaurant.survey"
-	compileSdk = 34
+	compileSdk = 35
 
 	defaultConfig {
 		applicationId = "com.mr.restaurant.survey"
@@ -17,7 +17,7 @@ android {
 		versionName = "1.0"
 
 		buildConfigField("String", "DEFAULT_BASE_URL", "\"http://192.168.100.69:3040/\"")
-		buildConfigField("String", "DEFAULT_TENANT", "\"mr-restaurant\"")
+		buildConfigField("String", "DEFAULT_TENANT", "\"mr-pez-1771377223\"")
 		vectorDrawables { useSupportLibrary = true }
 	}
 
