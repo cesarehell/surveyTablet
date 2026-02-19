@@ -8,6 +8,7 @@ import com.mr.restaurant.survey.net.dto.QOptionDTO
 import com.mr.restaurant.survey.net.dto.RegisterDeviceRequestDto
 import com.mr.restaurant.survey.net.dto.StartSurveyResponseDto
 import com.mr.restaurant.survey.net.dto.SubmitResponseDto
+import com.mr.restaurant.survey.net.dto.SubmitSurveyRequestDto
 import com.mr.restaurant.survey.net.dto.SurveyTemplateDto
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -41,12 +42,13 @@ interface SurveyApi {
 	suspend fun startSurvey(@Body req: StartSurveyRequestDto): StartSurveyResponseDto
 
 	@POST(ApiRoutes.SURVEY_ANSWERS)
-	suspend fun sendAnswers(
-		@Path("instId") instanceId: String, @Body answers: List<AnswerDto>
-	)
+	suspend fun sendAnswers(@Path("instId") instanceId: String, @Body answers: List<AnswerDto>)
 
 	@POST(ApiRoutes.SUBMIT_SURVEY)
-	suspend fun submitSurvey(@Path("instId") instanceId: String): SubmitResponseDto
+	suspend fun submitSurvey(
+		@Path("instId") instanceId: String,
+		@Body req: SubmitSurveyRequestDto
+	): SubmitResponseDto
 
 	@GET(ApiRoutes.ALERTS)
 	suspend fun getAlerts(@Query(ApiQuery.TENANT_ID) tenantId: String): PageDto<AlertViewDto>

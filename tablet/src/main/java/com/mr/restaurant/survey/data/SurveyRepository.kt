@@ -10,6 +10,7 @@ import com.mr.restaurant.survey.net.dto.QuestionType
 import com.mr.restaurant.survey.net.dto.RegisterDeviceRequestDto
 import com.mr.restaurant.survey.net.dto.StartSurveyResponseDto
 import com.mr.restaurant.survey.net.dto.SubmitResponseDto
+import com.mr.restaurant.survey.net.dto.SubmitSurveyRequestDto
 import com.mr.restaurant.survey.net.dto.SurveyTemplateDto
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -19,11 +20,8 @@ class SurveyRepository(
 	private val api: SurveyApi
 ) {
 	suspend fun pickCurrentTemplate(tenantId: String): SurveyTemplateDto {
-
 		Log.d("tenantId", "id = $tenantId")
-		return runCatching {
-			api.getCurrentFull(tenantId)
-		}
+		return runCatching { api.getCurrentFull(tenantId) }
 			.getOrElse {
 				val page = api.listTemplates(tenantId)
 				val templates = page.content
@@ -56,8 +54,8 @@ class SurveyRepository(
 		locationId: String? = null,
 		table: String? = null,
 		waiter: String? = null
-	): StartSurveyResponseDto {
-		return api.startSurvey(
+	): StartSurveyResponseDto =
+		api.startSurvey(
 			StartSurveyRequestDto(
 				tenantId = tenant,
 				templateId = templateId,
@@ -66,7 +64,6 @@ class SurveyRepository(
 				waiterName = waiter
 			)
 		)
-	}
 
 	suspend fun postAnswer(instanceId: String, questionId: String, value: Any) {
 		val json: JsonElement = when (value) {
@@ -86,7 +83,12 @@ class SurveyRepository(
 		return loadTemplateWithOptions(base.id)
 	}
 
-	suspend fun submit(instanceId: String): SubmitResponseDto = api.submitSurvey(instanceId)
+	suspend fun submit(instanceId: String, email: String?, marketingOptIn: Boolean?): SubmitResponseDto {
+		return api.submitSurvey(
+			instanceId,
+			SubmitSurveyRequestDto(email = email, marketingOptIn = marketingOptIn)
+		)
+	}
 
 	suspend fun getAlerts(tenantId: String): PageDto<AlertViewDto> = api.getAlerts(tenantId)
 }
