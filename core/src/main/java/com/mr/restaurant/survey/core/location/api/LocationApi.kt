@@ -1,7 +1,6 @@
 package com.mr.restaurant.survey.core.location.api
 
 import com.mr.restaurant.survey.core.location.dto.CreateLocationRequest
-import com.mr.restaurant.survey.core.location.dto.CreateLocationResponse
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.location.dto.PairingCodeDto
 import retrofit2.http.Body
@@ -17,7 +16,7 @@ interface LocationApi {
 	suspend fun list(@Query("tenantId") tenantId: String): List<LocationDto>
 
 	@POST("/v1/locations")
-	suspend fun create(@Body req: CreateLocationRequest): CreateLocationResponse
+	suspend fun create(@Body req: CreateLocationRequest): LocationDto
 
 	@GET("/v1/locations/{id}/pairing-codes")
 	suspend fun pairingCodes(@Path("id") id: String): List<PairingCodeDto>

@@ -17,7 +17,7 @@ import retrofit2.HttpException
 class TenantViewModel : ViewModel() {
 
 	private val api = ApiFactory
-		.retrofit("http://192.168.100.69:3040/")   // ojo: sin salto de línea
+		.retrofit()
 		.create(TenantApi::class.java)
 	private val repo = TenantRepository(api)
 	private val _state = MutableStateFlow(TenantUiState())
@@ -47,6 +47,7 @@ class TenantViewModel : ViewModel() {
 			.onSuccess { load() }
 			.onFailure { e -> _state.update { it.copy(error = e.message ?: "Error") } }
 	}
+
 }
 
 data class TenantUiState(

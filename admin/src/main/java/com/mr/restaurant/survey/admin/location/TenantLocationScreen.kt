@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,13 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.mr.restaurant.survey.core.location.dto.PairingCodeDto
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun TenantLocationsScreen(
 	tenantId: String,
 	onBack: () -> Unit,
-	vm: LocationsViewModel = remember(tenantId) { LocationsViewModel() } // ok para MVP
+	vm: LocationsViewModel = viewModel()
 ) {
 	val st by vm.state.collectAsState()
 
@@ -42,27 +42,7 @@ fun TenantLocationsScreen(
 	var selectedLocationId by remember { mutableStateOf<String?>(null) }
 	var selectedLocationName by remember { mutableStateOf<String?>(null) }
 
-	var codes by remember { mutableStateOf<List<PairingCodeDto>>(emptyList()) }
-	var codesLoading by remember { mutableStateOf(false) }
-	var codesError by remember { mutableStateOf<String?>(null) }
-
 	LaunchedEffect(tenantId) { vm.load(tenantId) }
-
-
-	LaunchedEffect(showCodes, selectedLocationId) {
-		val id = selectedLocationId
-		if (!showCodes || id == null) return@LaunchedEffect
-
-		codesLoading = true
-		codesError = null
-		codes = emptyList()
-
-		runCatching { vm.pairingCodes(id) }
-			.onSuccess { codes = it }
-			.onFailure { e -> codesError = e.message ?: "Error cargando códigos" }
-
-		codesLoading = false
-	}
 
 	Column(
 		Modifier
@@ -104,10 +84,11 @@ fun TenantLocationsScreen(
 					TextButton(onClick = {
 						selectedLocationId = loc.id
 						selectedLocationName = loc.name
+						vm.loadPairingCodes(loc.id)
 						showCodes = true
 					}) { Text("Codes") }
 				}
-				Divider()
+				HorizontalDivider()
 			}
 		}
 	}
@@ -151,26 +132,39 @@ fun TenantLocationsScreen(
 
 	if (showCodes) {
 		val title = "Pairing codes • ${selectedLocationName ?: ""}".trim()
+		val selectedId = selectedLocationId
 
 		AlertDialog(
-			onDismissRequest = { showCodes = false },
+			onDismissRequest = {
+				showCodes = false
+				selectedLocationId = null
+				selectedLocationName = null
+				vm.clearPairingCodes()
+			},
 			title = { Text(title) },
 			text = {
 				when {
-					codesLoading -> Text("Cargando…")
-					codesError != null -> Text(codesError!!, color = MaterialTheme.colorScheme.error)
-					codes.isEmpty() -> Text("No hay códigos (se generarán al solicitar).")
-					else -> Column { codes.forEach { Text("• ${it.code}") } }
+					st.pairingCodesLoading -> Text("Cargando…")
+					st.pairingCodesError != null -> Text(
+						st.pairingCodesError!!,
+						color = MaterialTheme.colorScheme.error
+					)
+
+					st.pairingCodes.isEmpty() -> Text("No hay códigos (se generarán al solicitar).")
+					else -> Column { st.pairingCodes.forEach { Text("• ${it.code}") } }
 				}
 			},
 			confirmButton = {
-				TextButton(onClick = { showCodes = false }) { Text("Cerrar") }
+				TextButton(onClick = {
+					showCodes = false
+					selectedLocationId = null
+					selectedLocationName = null
+					vm.clearPairingCodes()
+				}) { Text("Cerrar") }
 			},
 			dismissButton = {
 				TextButton(onClick = {
-					val id = selectedLocationId
-					selectedLocationId = null
-					selectedLocationId = id
+					if (selectedId != null) vm.loadPairingCodes(selectedId)
 				}) { Text("Reintentar") }
 			}
 		)

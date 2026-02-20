@@ -10,8 +10,5 @@ data class CreateLocationRequest(
 )
 
 @kotlinx.serialization.Serializable
-data class CreateLocationResponse(val id: String)
-
-@kotlinx.serialization.Serializable
 data class PairingCodeDto(val code: String)
 
