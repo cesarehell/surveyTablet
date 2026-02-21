@@ -2,17 +2,22 @@ package com.mr.restaurant.survey.admin.location
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mr.restaurant.survey.admin.ui.AdminUiEvent
 import com.mr.restaurant.survey.core.location.api.LocationApi
 import com.mr.restaurant.survey.core.location.dto.CreateLocationRequest
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.location.dto.PairingCodeDto
-import com.mr.restaurant.survey.core.net.ApiFactory
 import com.mr.restaurant.survey.core.net.ApiResult
 import com.mr.restaurant.survey.core.net.safeCall
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 data class LocationsUiState(
 	val loading: Boolean = false,
@@ -23,12 +28,14 @@ data class LocationsUiState(
 	val pairingCodesError: String? = null
 )
 
-class LocationsViewModel() : ViewModel() {
-	private val api = ApiFactory
-		.retrofit()
-		.create(LocationApi::class.java)
+@HiltViewModel
+class LocationsViewModel @Inject constructor(
+	private val api: LocationApi
+) : ViewModel() {
 	private val _state = MutableStateFlow(LocationsUiState())
 	val state = _state.asStateFlow()
+	private val _events = MutableSharedFlow<AdminUiEvent>(extraBufferCapacity = 8)
+	val events: SharedFlow<AdminUiEvent> = _events.asSharedFlow()
 
 	fun load(tenantId: String) = viewModelScope.launch {
 		_state.update {
@@ -52,12 +59,13 @@ class LocationsViewModel() : ViewModel() {
 		name: String,
 		city: String?,
 		branchName: String?,
-		code: String?,
-		onDone: () -> Unit
+		code: String?
 	) = viewModelScope.launch {
-
-		if (name.isBlank()) return@launch
-		_state.update { it.copy(loading = true, error = null) }
+		if (name.isBlank()) {
+			_events.tryEmit(AdminUiEvent.ShowError("El nombre es obligatorio"))
+			return@launch
+		}
+		_state.update { it.copy(loading = true) }
 
 		when (val res = safeCall { api.create(CreateLocationRequest(tenantId, name, city, branchName, code)) }) {
 			is ApiResult.Ok -> {
@@ -67,10 +75,14 @@ class LocationsViewModel() : ViewModel() {
 						locations = it.locations + res.value
 					)
 				}
-				onDone()
+				_events.tryEmit(AdminUiEvent.ShowSuccess("Location creada"))
+				_events.tryEmit(AdminUiEvent.CloseDialog)
 			}
 
-			is ApiResult.Err -> _state.update { it.copy(loading = false, error = res.message) }
+			is ApiResult.Err -> {
+				_state.update { it.copy(loading = false) }
+				_events.tryEmit(AdminUiEvent.ShowError(res.message))
+			}
 		}
 	}
 

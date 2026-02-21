@@ -1,11 +1,14 @@
 package com.mr.restaurant.survey.admin.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -58,5 +61,38 @@ fun ErrorBanner(message: String) {
 			modifier = Modifier.padding(12.dp),
 			style = MaterialTheme.typography.bodyMedium
 		)
+	}
+}
+
+@Composable
+fun ErrorWithRetry(
+	message: String,
+	onRetry: () -> Unit,
+	modifier: Modifier = Modifier
+) {
+	Column(
+		modifier = modifier.fillMaxWidth(),
+		verticalArrangement = Arrangement.spacedBy(8.dp)
+	) {
+		ErrorBanner(message = message)
+		Button(onClick = onRetry) {
+			Text("Reintentar")
+		}
+	}
+}
+
+@Composable
+fun EmptyState(
+	message: String,
+	modifier: Modifier = Modifier
+) {
+	Column(
+		modifier = modifier
+			.fillMaxSize()
+			.padding(24.dp),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.Center
+	) {
+		Text(message, style = MaterialTheme.typography.bodyLarge)
 	}
 }

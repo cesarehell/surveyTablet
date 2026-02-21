@@ -1,7 +1,6 @@
 package com.mr.restaurant.survey.core.net
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
 
 sealed class ApiResult<out T> {
 	data class Ok<T>(val value: T) : ApiResult<T>()
@@ -10,9 +9,11 @@ sealed class ApiResult<out T> {
 
 suspend inline fun <T> safeCall(
 	crossinline block: suspend () -> T
-): ApiResult<T> = withContext(Dispatchers.IO) {
-	try {
+): ApiResult<T> {
+	return try {
 		ApiResult.Ok(block())
+	} catch (c: CancellationException) {
+		throw c
 	} catch (t: Throwable) {
 		ApiResult.Err(ApiErrorMapper.message(t), t)
 	}

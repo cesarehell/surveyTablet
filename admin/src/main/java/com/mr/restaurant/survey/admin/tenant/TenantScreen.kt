@@ -18,6 +18,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,12 +32,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.mr.restaurant.survey.admin.ui.EmptyState
+import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
 import com.mr.restaurant.survey.core.tenant.dto.TenantDto
 import com.mr.restaurant.survey.core.tenant.dto.TenantStatus
 
 @Composable
 fun TenantScreen(
 	state: TenantUiState,
+	snackbarHostState: SnackbarHostState,
+	onRetry: () -> Unit,
 	onCreateTenant: (String) -> Unit,
 	onToggleTenant: (TenantDto) -> Unit,
 	onOpenTenant: (String) -> Unit
@@ -42,33 +49,52 @@ fun TenantScreen(
 	var showCreate by remember { mutableStateOf(false) }
 	var name by remember { mutableStateOf("") }
 
-	Column(
-		Modifier
-			.fillMaxSize()
-			.padding(16.dp)
-	) {
-		Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-			Text("Tenants", style = MaterialTheme.typography.titleLarge)
-			Button(onClick = { showCreate = true }) { Text("Crear") }
-		}
+	Scaffold(
+		snackbarHost = { SnackbarHost(snackbarHostState) }
+	) { padding ->
+		Column(
+			Modifier
+				.fillMaxSize()
+				.padding(padding)
+				.padding(16.dp)
+		) {
+			Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+				Text("Tenants", style = MaterialTheme.typography.titleLarge)
+				Button(
+					onClick = { showCreate = true },
+					enabled = !state.loading
+				) { Text("Crear") }
+			}
 
-		state.error?.let {
-			Spacer(Modifier.height(8.dp))
-			Text(it, color = MaterialTheme.colorScheme.error)
-		}
-
-		Spacer(Modifier.height(12.dp))
-		if (state.loading) CircularProgressIndicator()
-		Spacer(Modifier.height(12.dp))
-
-		LazyColumn {
-			items(state.tenants, key = { it.id }) { t ->
-				TenantRow(
-					t = t,
-					onOpen = { onOpenTenant(t.id) },
-					onToggle = { onToggleTenant(t) }
+			state.error?.let {
+				Spacer(Modifier.height(8.dp))
+				ErrorWithRetry(
+					message = it,
+					onRetry = onRetry
 				)
-				HorizontalDivider()
+			}
+
+			Spacer(Modifier.height(12.dp))
+			if (state.loading) CircularProgressIndicator()
+			Spacer(Modifier.height(12.dp))
+
+			if (!state.loading && state.tenants.isEmpty()) {
+				EmptyState(
+					message = "No hay tenants creados todavía.",
+					modifier = Modifier.weight(1f)
+				)
+			} else {
+				LazyColumn {
+					items(state.tenants, key = { it.id }) { t ->
+						TenantRow(
+							t = t,
+							enabled = !state.loading,
+							onOpen = { onOpenTenant(t.id) },
+							onToggle = { onToggleTenant(t) }
+						)
+						HorizontalDivider()
+					}
+				}
 			}
 		}
 	}
@@ -86,12 +112,15 @@ fun TenantScreen(
 				)
 			},
 			confirmButton = {
-				Button(onClick = {
-					val trimmed = name.trim()
-					if (trimmed.isNotEmpty()) onCreateTenant(trimmed)
-					name = ""
-					showCreate = false
-				}) { Text("Crear") }
+				Button(
+					onClick = {
+						val trimmed = name.trim()
+						if (trimmed.isNotEmpty()) onCreateTenant(trimmed)
+						name = ""
+						showCreate = false
+					},
+					enabled = name.isNotBlank() && !state.loading
+				) { Text("Crear") }
 			},
 			dismissButton = {
 				TextButton(onClick = { showCreate = false }) { Text("Cancelar") }
@@ -103,13 +132,14 @@ fun TenantScreen(
 @Composable
 private fun TenantRow(
 	t: TenantDto,
+	enabled: Boolean,
 	onOpen: () -> Unit,
 	onToggle: () -> Unit
 ) {
 	Row(
 		Modifier
 			.fillMaxWidth()
-			.clickable(onClick = onOpen)
+			.clickable(enabled = enabled, onClick = onOpen)
 			.padding(vertical = 10.dp),
 		verticalAlignment = Alignment.CenterVertically,
 		horizontalArrangement = Arrangement.SpaceBetween
@@ -123,6 +153,7 @@ private fun TenantRow(
 			Spacer(Modifier.width(8.dp))
 			Switch(
 				checked = t.status == TenantStatus.ACTIVE,
+				enabled = enabled,
 				onCheckedChange = { onToggle() }
 			)
 		}

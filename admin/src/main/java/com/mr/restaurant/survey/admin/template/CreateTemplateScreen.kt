@@ -19,12 +19,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,8 +31,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.mr.restaurant.survey.admin.ui.ErrorBanner
+import com.mr.restaurant.survey.admin.ui.SimpleTopBar
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.template.dto.TemplateScope
 
@@ -43,6 +43,7 @@ fun CreateTemplateScreen(
 	loading: Boolean,
 	locations: List<LocationDto>,
 	error: String?,
+	snackbarHostState: SnackbarHostState,
 	onBack: () -> Unit,
 	onSubmit: (name: String, scope: TemplateScope, locationId: String?, npsEnabled: Boolean) -> Unit
 ) {
@@ -57,6 +58,7 @@ fun CreateTemplateScreen(
 	val canSubmit = nameOk && locationOk && !loading
 
 	Scaffold(
+		snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
 		topBar = {
 			SimpleTopBar(
 				title = "Crear template",
@@ -135,49 +137,6 @@ fun CreateTemplateScreen(
 }
 
 @Composable
-private fun SimpleTopBar(
-	title: String,
-	subtitle: String? = null,
-	onBack: () -> Unit
-) {
-	Surface(shadowElevation = 2.dp) {
-		Row(
-			Modifier
-				.fillMaxWidth()
-				.padding(horizontal = 12.dp, vertical = 12.dp),
-			verticalAlignment = Alignment.CenterVertically
-		) {
-			TextButton(onClick = onBack) { Text("←") }
-
-			Spacer(Modifier.width(8.dp))
-
-			Column(Modifier.weight(1f)) {
-				Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-				if (!subtitle.isNullOrBlank()) {
-					Text(subtitle, style = MaterialTheme.typography.bodySmall)
-				}
-			}
-		}
-	}
-}
-
-@Composable
-private fun ErrorBanner(message: String) {
-	Surface(
-		color = MaterialTheme.colorScheme.errorContainer,
-		contentColor = MaterialTheme.colorScheme.onErrorContainer,
-		tonalElevation = 2.dp,
-		shape = MaterialTheme.shapes.medium
-	) {
-		Text(
-			text = message,
-			modifier = Modifier.padding(12.dp),
-			style = MaterialTheme.typography.bodyMedium
-		)
-	}
-}
-
-@Composable
 private fun ScopeSelector(
 	value: TemplateScope,
 	onChange: (TemplateScope) -> Unit
@@ -237,14 +196,6 @@ private fun LocationSelector(
 				else if (!enabled) Text("No hay sucursales para este tenant")
 			}
 		)
-
-		Box(
-			Modifier
-				.fillMaxWidth()
-				.height(0.dp)
-		)
-
-		LaunchedEffect(selectedName, enabled) { /* no-op */ }
 
 		Box(
 			Modifier
