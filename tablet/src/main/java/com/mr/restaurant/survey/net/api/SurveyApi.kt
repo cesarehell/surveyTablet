@@ -18,13 +18,19 @@ import retrofit2.http.Query
 
 interface SurveyApi {
 	@GET(ApiRoutes.CURRENT_TEMPLATE)
-	suspend fun getCurrent(@Query(ApiQuery.TENANT_ID) tenantId: String): SurveyTemplateDto
+	suspend fun getCurrent(
+		@Query(ApiQuery.TENANT_ID) tenantId: String,
+		@Query(ApiQuery.LOCATION_ID) locationId: String
+	): SurveyTemplateDto
 
 	@POST(ApiRoutes.REGISTER_DEVICE)
 	suspend fun registerDevice(@Body req: RegisterDeviceRequestDto)
 
 	@GET(ApiRoutes.CURRENT_TEMPLATE_FULL)
-	suspend fun getCurrentFull(@Query(ApiQuery.TENANT_ID) tenantId: String): SurveyTemplateDto
+	suspend fun getCurrentFull(
+		@Query(ApiQuery.TENANT_ID) tenantId: String,
+		@Query(ApiQuery.LOCATION_ID) locationId: String
+	): SurveyTemplateDto
 
 	@GET(ApiRoutes.TEMPLATE_BY_ID)
 	suspend fun getTemplate(@Path("id") id: String): SurveyTemplateDto

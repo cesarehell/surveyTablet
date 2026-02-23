@@ -8,18 +8,21 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mr.restaurant.survey.net.dto.QuestionDto
 import com.mr.restaurant.survey.net.dto.QuestionType
+import com.mr.restaurant.survey.net.dto.QOptionDTO
 
 @Composable
 fun SurveyKiosk(vm: AppViewModel) {
@@ -60,7 +63,9 @@ fun SurveyKiosk(vm: AppViewModel) {
 							}
 						)
 					} else {
-						SubmitScreen(onSubmit = { vm.submitAndRestart() }, message = null)
+						SubmitScreen(onSubmit = { email, marketingOptIn ->
+							vm.submitAndRestart(email, marketingOptIn)
+						}, message = st.submitError)
 					}
 				}
 			}
@@ -163,6 +168,8 @@ private fun QuestionScreen(question: QuestionDto, onAnswer: (Any) -> Unit) {
 		when (question.type) {
 			QuestionType.LIKERT_5 -> Likert5(onSelect = onAnswer)
 			QuestionType.YES_NO -> YesNoRow(onAnswer)
+			QuestionType.SINGLE -> SingleChoiceAnswer(question.options.orEmpty(), onAnswer)
+			QuestionType.MULTI -> MultiChoiceAnswer(question.options.orEmpty(), onAnswer)
 			QuestionType.TEXT -> TextAnswer(onAnswer)
 			else -> Text("Tipo no implementado aún: ${question.type.name}")
 		}
@@ -208,18 +215,133 @@ private fun TextAnswer(onAnswer: (String) -> Unit) {
 }
 
 @Composable
-private fun SubmitScreen(onSubmit: () -> Unit, message: String?) {
+private fun SingleChoiceAnswer(options: List<QOptionDTO>, onAnswer: (String) -> Unit) {
+	if (options.isEmpty()) {
+		Text("Esta pregunta no tiene opciones configuradas.")
+		return
+	}
+
 	Column(
-		Modifier.fillMaxSize(),
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.spacedBy(12.dp)
+	) {
+		options.sortedBy { it.oOrder }.forEach { option ->
+			ElevatedButton(
+				onClick = { onAnswer(option.value) },
+				modifier = Modifier.fillMaxWidth(0.75f)
+			) {
+				Text(option.label, fontSize = 22.sp)
+			}
+		}
+	}
+}
+
+@Composable
+private fun MultiChoiceAnswer(options: List<QOptionDTO>, onAnswer: (List<String>) -> Unit) {
+	if (options.isEmpty()) {
+		Text("Esta pregunta no tiene opciones configuradas.")
+		return
+	}
+
+	var selected by remember { mutableStateOf(setOf<String>()) }
+	Column(
+		horizontalAlignment = Alignment.CenterHorizontally,
+		verticalArrangement = Arrangement.spacedBy(12.dp)
+	) {
+		options.sortedBy { it.oOrder }.forEach { option ->
+			val isSelected = option.value in selected
+			FilterChip(
+				selected = isSelected,
+				onClick = {
+					selected = if (isSelected) selected - option.value else selected + option.value
+				},
+				label = { Text(option.label, fontSize = 18.sp) }
+			)
+		}
+
+		Button(
+			onClick = { onAnswer(selected.toList()) },
+			enabled = selected.isNotEmpty()
+		) {
+			Text("Continuar")
+		}
+	}
+}
+
+@Composable
+private fun SubmitScreen(onSubmit: (String?, Boolean) -> Unit, message: String?) {
+	var email by remember { mutableStateOf("") }
+	var marketingOptIn by remember { mutableStateOf(false) }
+	var emailError by remember { mutableStateOf<String?>(null) }
+
+	fun submitWithValidation(forceWithoutEmail: Boolean = false) {
+		val trimmed = email.trim()
+		val finalEmail = if (forceWithoutEmail || trimmed.isBlank()) null else trimmed
+		if (finalEmail != null && !isValidEmail(finalEmail)) {
+			emailError = "Ingresa un correo válido o envía sin correo"
+			return
+		}
+		emailError = null
+		onSubmit(finalEmail, marketingOptIn)
+	}
+
+	Column(
+		Modifier
+			.fillMaxSize()
+			.padding(24.dp),
 		verticalArrangement = Arrangement.Center,
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
-		Button(onClick = onSubmit) { Text("Enviar respuestas") }
+		Text("Finaliza tu experiencia", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+		Spacer(Modifier.height(16.dp))
+		OutlinedTextField(
+			value = email,
+			onValueChange = {
+				email = it
+				if (emailError != null) emailError = null
+			},
+			modifier = Modifier.fillMaxWidth(0.8f),
+			label = { Text("Correo (opcional)") },
+			singleLine = true,
+			keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+		)
+		Spacer(Modifier.height(8.dp))
+		Text(
+			"Si lo compartes, podremos enviarte agradecimiento o cupón.",
+			fontSize = 14.sp
+		)
+		Spacer(Modifier.height(12.dp))
+		Row(
+			modifier = Modifier.fillMaxWidth(0.8f),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.Start
+		) {
+			Checkbox(
+				checked = marketingOptIn,
+				onCheckedChange = { marketingOptIn = it }
+			)
+			Text("Acepto recibir promociones por correo")
+		}
+		if (emailError != null) {
+			Spacer(Modifier.height(8.dp))
+			Text(emailError!!, color = MaterialTheme.colorScheme.error)
+		}
+		Spacer(Modifier.height(16.dp))
+		Button(onClick = { submitWithValidation() }) { Text("Enviar respuestas") }
+		Spacer(Modifier.height(8.dp))
+		TextButton(onClick = { submitWithValidation(forceWithoutEmail = true) }) {
+			Text("Enviar sin correo")
+		}
 		if (message != null) {
 			Spacer(Modifier.height(16.dp))
-			Text(message, fontSize = 20.sp)
+			Text(message, fontSize = 16.sp, color = MaterialTheme.colorScheme.error)
 		}
 	}
+}
+
+private fun isValidEmail(value: String): Boolean {
+	val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+	return emailRegex.matches(value)
 }
 
 /* ---------- Previews ---------- */
@@ -286,5 +408,5 @@ private fun PreviewText() {
 @Preview(showBackground = true, widthDp = 900, heightDp = 600, name = "Submit")
 @Composable
 private fun PreviewSubmit() {
-	MaterialTheme { Surface { SubmitScreen(onSubmit = {}, message = "¡Gracias!") } }
+	MaterialTheme { Surface { SubmitScreen(onSubmit = { _, _ -> }, message = "¡Gracias!") } }
 }

@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 data class UiState(
 	val loading: Boolean = true,
 	val error: String? = null,
+	val submitError: String? = null,
 	val instanceId: String? = null,
 	val template: SurveyTemplateDto? = null,
 	val stepIndex: Int = -1,
@@ -36,6 +37,7 @@ class AppViewModel(
 	val state: StateFlow<UiState> = _state
 
 	private var syncListener: RtdbSyncListener? = null
+	private var runtimeLocationId: String? = locationId?.takeIf { it.isNotBlank() }
 
 	init {
 		bootstrap()
@@ -61,10 +63,11 @@ class AppViewModel(
 
 	private suspend fun loadInitialTemplate(): SurveyTemplateDto =
 		if (templateId != null) repo.loadTemplateWithOptions(templateId)
-		else repo.pickCurrentTemplate(tenant)
+		else repo.pickCurrentTemplate(tenant, runtimeLocationId)
 
 	private suspend fun startNewSurveyInstance(template: SurveyTemplateDto): String {
 		val effectiveLocationId = resolveLocationId(template)
+		runtimeLocationId = effectiveLocationId
 
 		android.util.Log.i(
 			"SURVEY",
@@ -90,12 +93,14 @@ class AppViewModel(
 			.onFailure { e -> setError(e.message) }
 	}
 
-	fun submitAndRestart() = viewModelScope.launch {
+	fun submitAndRestart(email: String?, marketingOptIn: Boolean) = viewModelScope.launch {
 		val inst = _state.value.instanceId ?: return@launch
+		val normalizedEmail = email?.trim()?.takeIf { it.isNotBlank() }
+		_state.update { it.copy(submitError = null) }
 
-		runCatching { repo.submit(inst, email = "mail@mail222.com", marketingOptIn = false) }
+		runCatching { repo.submit(inst, email = normalizedEmail, marketingOptIn = marketingOptIn) }
 			.onSuccess {
-				_state.update { it.copy(celebrating = true, error = null) }
+				_state.update { it.copy(celebrating = true, error = null, submitError = null) }
 				delay(1200)
 
 				val tpl = _state.value.template ?: run {
@@ -111,12 +116,18 @@ class AppViewModel(
 						instanceId = newInstanceId,
 						stepIndex = -1,
 						error = null,
+						submitError = null,
 						celebrating = false
 					)
 				}
 			}
 			.onFailure { e ->
-				setError(e.message ?: "Error al enviar")
+				_state.update {
+					it.copy(
+						loading = false,
+						submitError = e.message ?: "Error al enviar"
+					)
+				}
 			}
 	}
 
@@ -128,8 +139,27 @@ class AppViewModel(
 			prefs = prefs,
 			scope = viewModelScope,
 			onTrigger = {
-				val newTpl = repo.refreshCurrentTemplate(tenant)
-				_state.value = _state.value.copy(template = newTpl, error = null, stepIndex = -1)
+				runCatching {
+					val current = _state.value
+					val currentTemplateId = current.template?.id
+					val newTpl = repo.refreshCurrentTemplate(tenant, runtimeLocationId)
+					val newInstanceId =
+						if (currentTemplateId != null && currentTemplateId != newTpl.id) {
+							startNewSurveyInstance(newTpl)
+						} else {
+							current.instanceId
+						}
+
+					_state.value = current.copy(
+						template = newTpl,
+						instanceId = newInstanceId,
+						error = null,
+						submitError = null,
+						stepIndex = -1
+					)
+				}.onFailure { e ->
+					setError(e.message ?: "Error refrescando encuesta")
+				}
 			}
 		).also { it.start() }
 	}

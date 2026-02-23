@@ -10,36 +10,57 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mr.restaurant.survey.BuildConfig
 import com.mr.restaurant.survey.data.SurveyRepository
 import com.mr.restaurant.survey.fcm.AppFcmService
 import com.mr.restaurant.survey.net.Network
 
 class MainActivity : ComponentActivity() {
-
-	private val vm: AppViewModel by viewModels { appViewModelFactory() }
+	private lateinit var provisioningPrefs: TabletProvisioningPrefs
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
+		provisioningPrefs = TabletProvisioningPrefs(applicationContext)
 
 		ensureNotifChannel()
 		requestNotifPermissionIfNeeded()
+		val initialConfig = provisioningPrefs.load()
+		if (initialConfig != null) {
+			AppFcmService.fetchToken(applicationContext)
+		}
 
-		AppFcmService.fetchToken()
-
-		setContent { SurveyKiosk(vm) }
+		setContent {
+			var config = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(initialConfig) }
+			val currentConfig = config.value
+			if (currentConfig == null) {
+				TabletProvisioningScreen(
+					defaultTenantId = BuildConfig.DEFAULT_TENANT,
+					baseUrl = BuildConfig.DEFAULT_BASE_URL
+				) { saved ->
+					provisioningPrefs.save(saved)
+					config.value = saved
+					AppFcmService.fetchToken(applicationContext)
+				}
+			} else {
+				val vm: AppViewModel = viewModel(
+					key = "tablet-${currentConfig.tenantId}-${currentConfig.locationId}",
+					factory = appViewModelFactory(currentConfig)
+				)
+				SurveyKiosk(vm)
+			}
+		}
 	}
 
-	private fun appViewModelFactory(): ViewModelProvider.Factory {
+	private fun appViewModelFactory(config: TabletProvisioningConfig): ViewModelProvider.Factory {
 		val api = Network.createApi(BuildConfig.DEFAULT_BASE_URL)
 		val repo = SurveyRepository(api)
 
-		val tenant = BuildConfig.DEFAULT_TENANT
+		val tenant = config.tenantId
 		val templateId: String? = null
-		val locationId: String? = null
+		val locationId: String? = config.locationId
 
 		val deviceId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 		Log.d("DEVICE", "DEVICE ID = $deviceId")

@@ -45,15 +45,26 @@ class RtdbSyncListener(
 			private fun handle(snapshot: DataSnapshot) {
 				val eventId = snapshot.key ?: return
 				val type = snapshot.child(RtdbEvents.TYPE).getValue(String::class.java) ?: "UNKNOWN"
+				val entity = snapshot.child(RtdbEvents.ENTITY).getValue(String::class.java)
+				val action = snapshot.child(RtdbEvents.ACTION).getValue(String::class.java)
 
 				scope.launch {
 					val last = prefs.getLastEventId()
 					if (last == eventId) return@launch
 
-					Log.d("RtdbSyncListener", "Event received id=$eventId type=$type")
+					Log.d("RtdbSyncListener", "Event received id=$eventId type=$type entity=$entity action=$action")
 					prefs.setLastEventId(eventId)
 
-					if (type.startsWith("TEMPLATE_") || type.startsWith("RULE_")) {
+					val shouldRefresh = when {
+						// Legacy/alternative payloads
+						type.startsWith("TEMPLATE_") || type.startsWith("RULE_") -> true
+						// Current backend payload for config changes
+						type == RtdbEvents.CONFIG_CHANGED &&
+							(entity == RtdbEvents.ENTITY_TEMPLATE || entity == RtdbEvents.ENTITY_RULE) -> true
+						else -> false
+					}
+
+					if (shouldRefresh) {
 						onTrigger()
 					}
 				}
@@ -77,4 +88,10 @@ object RtdbEvents {
 	const val TENANTS = "tenants"
 	const val EVENTS = "events"
 	const val TYPE = "type"
+	const val ENTITY = "entity"
+	const val ACTION = "action"
+
+	const val CONFIG_CHANGED = "CONFIG_CHANGED"
+	const val ENTITY_TEMPLATE = "TEMPLATE"
+	const val ENTITY_RULE = "RULE"
 }

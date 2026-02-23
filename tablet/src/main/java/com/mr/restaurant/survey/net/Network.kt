@@ -12,6 +12,7 @@ import retrofit2.create
 object Network {
 	fun createApi(baseUrl: String): SurveyApi {
 		val json = Json {
+			encodeDefaults = true
 			ignoreUnknownKeys = true
 			explicitNulls = false
 			isLenient = true

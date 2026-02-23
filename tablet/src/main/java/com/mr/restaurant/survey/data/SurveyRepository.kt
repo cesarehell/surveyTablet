@@ -19,15 +19,22 @@ import kotlinx.serialization.json.JsonPrimitive
 class SurveyRepository(
 	private val api: SurveyApi
 ) {
-	suspend fun pickCurrentTemplate(tenantId: String): SurveyTemplateDto {
+	suspend fun pickCurrentTemplate(tenantId: String, locationId: String? = null): SurveyTemplateDto {
 		Log.d("tenantId", "id = $tenantId")
-		return runCatching { api.getCurrentFull(tenantId) }
-			.getOrElse {
-				val page = api.listTemplates(tenantId)
-				val templates = page.content
-				require(templates.isNotEmpty()) { "No hay templates publicados para $tenantId" }
-				templates.first()
-			}
+		return if (!locationId.isNullOrBlank()) {
+			runCatching { api.getCurrentFull(tenantId, locationId) }
+				.getOrElse {
+					val page = api.listTemplates(tenantId)
+					val templates = page.content
+					require(templates.isNotEmpty()) { "No hay templates publicados para $tenantId" }
+					templates.firstOrNull { it.location?.id == locationId } ?: templates.first()
+				}
+		} else {
+			val page = api.listTemplates(tenantId)
+			val templates = page.content
+			require(templates.isNotEmpty()) { "No hay templates publicados para $tenantId" }
+			templates.first()
+		}
 	}
 
 	suspend fun loadTemplateWithOptions(templateId: String): SurveyTemplateDto {
@@ -41,8 +48,22 @@ class SurveyRepository(
 		return t.copy(questions = enriched)
 	}
 
-	suspend fun registerDevice(tenantId: String, token: String, owner: String? = null) {
-		api.registerDevice(RegisterDeviceRequestDto(tenantId, token, owner))
+	suspend fun registerDevice(
+		tenantId: String,
+		token: String,
+		owner: String? = null,
+		role: String? = null,
+		locationId: String? = null,
+	) {
+		api.registerDevice(
+			RegisterDeviceRequestDto(
+				tenantId = tenantId,
+				token = token,
+				owner = owner,
+				role = role,
+				locationId = locationId
+			)
+		)
 	}
 
 	suspend fun pickFirstPublishedTemplate(tenantId: String): SurveyTemplateDto? =
@@ -78,8 +99,8 @@ class SurveyRepository(
 		api.sendAnswers(instanceId, listOf(AnswerDto(questionId = questionId, answer = json)))
 	}
 
-	suspend fun refreshCurrentTemplate(tenantId: String): SurveyTemplateDto {
-		val base = pickCurrentTemplate(tenantId)
+	suspend fun refreshCurrentTemplate(tenantId: String, locationId: String? = null): SurveyTemplateDto {
+		val base = pickCurrentTemplate(tenantId, locationId)
 		return loadTemplateWithOptions(base.id)
 	}
 
