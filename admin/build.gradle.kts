@@ -5,6 +5,7 @@ plugins {
 	id("org.jetbrains.kotlin.plugin.compose")
 	id("com.google.devtools.ksp")
 	id("com.google.dagger.hilt.android")
+	id("com.google.gms.google-services")
 }
 
 android {
@@ -12,7 +13,7 @@ android {
 	compileSdk = 35
 
 	defaultConfig {
-		applicationId = "com.mr.restaurant.survey.admin"
+		applicationId = "com.mr.restaurant.admin"
 		minSdk = 26
 		targetSdk = 34
 		versionCode = 1
@@ -47,6 +48,9 @@ dependencies {
 	implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 	debugImplementation("androidx.compose.ui:ui-tooling")
 	implementation("androidx.compose.material3:material3:1.3.0")
+	implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+	implementation("com.google.firebase:firebase-messaging-ktx")
+	implementation("com.google.firebase:firebase-analytics-ktx")
 
 	implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
 	implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.4")

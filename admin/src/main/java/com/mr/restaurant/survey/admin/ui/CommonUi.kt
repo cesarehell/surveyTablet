@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -25,14 +27,24 @@ fun SimpleTopBar(
 	subtitle: String? = null,
 	onBack: () -> Unit
 ) {
-	Surface(shadowElevation = 2.dp) {
+	Surface(
+		color = MaterialTheme.colorScheme.primary,
+		contentColor = MaterialTheme.colorScheme.onPrimary,
+		shadowElevation = 6.dp
+	) {
 		Row(
 			Modifier
 				.fillMaxWidth()
-				.padding(horizontal = 12.dp, vertical = 12.dp),
+				.padding(horizontal = 12.dp, vertical = 14.dp),
 			verticalAlignment = Alignment.CenterVertically
 		) {
-			TextButton(onClick = onBack) { Text("←") }
+			Card(
+				colors = CardDefaults.cardColors(
+					containerColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f)
+				)
+			) {
+				TextButton(onClick = onBack) { Text("←", color = MaterialTheme.colorScheme.onPrimary) }
+			}
 			Spacer(Modifier.width(8.dp))
 			Column(Modifier.weight(1f)) {
 				Text(
@@ -41,7 +53,11 @@ fun SimpleTopBar(
 					fontWeight = FontWeight.SemiBold
 				)
 				if (!subtitle.isNullOrBlank()) {
-					Text(subtitle, style = MaterialTheme.typography.bodySmall)
+					Text(
+						subtitle,
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f)
+					)
 				}
 			}
 		}

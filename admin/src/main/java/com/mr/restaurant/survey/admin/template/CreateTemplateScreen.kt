@@ -183,40 +183,50 @@ private fun LocationSelector(
 	Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
 		Text("Sucursal", style = MaterialTheme.typography.titleSmall)
 
-		OutlinedTextField(
-			value = selectedName,
-			onValueChange = {},
-			readOnly = true,
-			enabled = enabled,
-			modifier = Modifier.fillMaxWidth(),
-			isError = isError,
-			trailingIcon = { Text("▾") },
-			supportingText = {
-				if (isError) Text("Debes seleccionar una sucursal")
-				else if (!enabled) Text("No hay sucursales para este tenant")
+		Box(Modifier.fillMaxWidth()) {
+			Button(
+				onClick = { expanded = true },
+				enabled = enabled,
+				modifier = Modifier.fillMaxWidth()
+			) {
+				Row(
+					modifier = Modifier.fillMaxWidth(),
+					horizontalArrangement = Arrangement.SpaceBetween,
+					verticalAlignment = Alignment.CenterVertically
+				) {
+					Text(selectedName)
+					Text("▾")
+				}
 			}
-		)
 
-		Box(
-			Modifier
-				.fillMaxWidth()
-				.height(56.dp)
-				.clickable(enabled = enabled) { expanded = true }
-		)
-
-		DropdownMenu(
-			expanded = expanded,
-			onDismissRequest = { expanded = false }
-		) {
-			locations.forEach { loc ->
-				DropdownMenuItem(
-					text = { Text(loc.name) },
-					onClick = {
-						onSelect(loc.id)
-						expanded = false
-					}
-				)
+			DropdownMenu(
+				expanded = expanded,
+				onDismissRequest = { expanded = false }
+			) {
+				locations.forEach { loc ->
+					DropdownMenuItem(
+						text = { Text(loc.name) },
+						onClick = {
+							onSelect(loc.id)
+							expanded = false
+						}
+					)
+				}
 			}
+		}
+
+		if (isError) {
+			Text(
+				"Debes seleccionar una sucursal activa",
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.error
+			)
+		} else if (!enabled) {
+			Text(
+				"No hay sucursales activas para este tenant",
+				style = MaterialTheme.typography.bodySmall,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
 		}
 	}
 }

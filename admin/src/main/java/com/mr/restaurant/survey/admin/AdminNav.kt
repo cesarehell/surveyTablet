@@ -8,16 +8,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.mr.restaurant.survey.admin.alert.TenantAlertsScreen
 import com.mr.restaurant.survey.admin.location.TenantLocationsScreen
+import com.mr.restaurant.survey.admin.metrics.TenantMetricsScreen
 import com.mr.restaurant.survey.admin.navigation.Routes
 import com.mr.restaurant.survey.admin.navigation.requireTemplateId
 import com.mr.restaurant.survey.admin.navigation.requireTenantId
+import com.mr.restaurant.survey.admin.push.AdminPushViewModel
+import com.mr.restaurant.survey.admin.threshold.TenantThresholdsScreen
 import com.mr.restaurant.survey.admin.template.CreateTemplateRoute
 import com.mr.restaurant.survey.admin.template.TemplateDetailRoute
 import com.mr.restaurant.survey.admin.template.TenantTemplateScreen
@@ -46,9 +52,14 @@ fun AdminNavHost() {
 				MissingRouteArgScreen(onBack = { nav.popBackStack() })
 				return@composable
 			}
+			val pushVm: AdminPushViewModel = hiltViewModel()
+			LaunchedEffect(tenantId) {
+				pushVm.bindTenant(tenantId)
+			}
 			TenantDashboardScreen(
 				tenantId = tenantId,
 				onBack = { nav.popBackStack() },
+				onMetrics = { nav.navigate(Routes.tenantMetrics(tenantId)) },
 				onLocations = { nav.navigate(Routes.tenantLocations(tenantId)) },
 				onTemplates = { nav.navigate(Routes.tenantTemplates(tenantId)) },
 				onThresholds = { nav.navigate(Routes.tenantThresholds(tenantId)) },
@@ -125,6 +136,21 @@ fun AdminNavHost() {
 		}
 
 		composable(
+			route = Routes.TENANT_METRICS,
+			arguments = listOf(Routes.tenantIdNavArg)
+		) { backStack ->
+			val tenantId = backStack.arguments?.let { runCatching { it.requireTenantId() }.getOrNull() }
+			if (tenantId.isNullOrBlank()) {
+				MissingRouteArgScreen(onBack = { nav.popBackStack() })
+				return@composable
+			}
+			TenantMetricsScreen(
+				tenantId = tenantId,
+				onBack = { nav.popBackStack() }
+			)
+		}
+
+		composable(
 			route = Routes.TENANT_THRESHOLDS,
 			arguments = listOf(Routes.tenantIdNavArg)
 		) { backStack ->
@@ -133,8 +159,7 @@ fun AdminNavHost() {
 				MissingRouteArgScreen(onBack = { nav.popBackStack() })
 				return@composable
 			}
-			ComingSoonScreen(
-				title = "Thresholds",
+			TenantThresholdsScreen(
 				tenantId = tenantId,
 				onBack = { nav.popBackStack() }
 			)
@@ -149,8 +174,7 @@ fun AdminNavHost() {
 				MissingRouteArgScreen(onBack = { nav.popBackStack() })
 				return@composable
 			}
-			ComingSoonScreen(
-				title = "Alertas",
+			TenantAlertsScreen(
 				tenantId = tenantId,
 				onBack = { nav.popBackStack() }
 			)
@@ -168,31 +192,6 @@ private fun MissingRouteArgScreen(onBack: () -> Unit) {
 		horizontalAlignment = Alignment.CenterHorizontally
 	) {
 		Text("No se pudo abrir esta pantalla.", style = MaterialTheme.typography.titleMedium)
-		TextButton(onClick = onBack) { Text("Volver") }
-	}
-}
-
-@Composable
-private fun ComingSoonScreen(
-	title: String,
-	tenantId: String,
-	onBack: () -> Unit
-) {
-	Column(
-		modifier = Modifier
-			.fillMaxSize()
-			.padding(24.dp),
-		verticalArrangement = Arrangement.Center,
-		horizontalAlignment = Alignment.CenterHorizontally
-	) {
-		Text(
-			"$title · $tenantId",
-			style = MaterialTheme.typography.titleMedium
-		)
-		Text(
-			"Próximamente",
-			style = MaterialTheme.typography.bodyLarge
-		)
 		TextButton(onClick = onBack) { Text("Volver") }
 	}
 }

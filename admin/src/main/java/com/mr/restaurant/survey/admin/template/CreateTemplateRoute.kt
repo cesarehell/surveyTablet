@@ -45,7 +45,7 @@ fun CreateTemplateRoute(
 	CreateTemplateScreen(
 		tenantId = tenantId,
 		loading = templateState.loading || locState.loading,
-		locations = locState.locations,
+		locations = locState.locations.filter { it.active },
 		error = templateState.error ?: locState.error,
 		snackbarHostState = snackbarHostState,
 		onBack = onBack,

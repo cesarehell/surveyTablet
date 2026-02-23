@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
 import com.mr.restaurant.survey.admin.ui.EmptyState
+import com.mr.restaurant.survey.admin.ui.ErrorBanner
 import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
 
 @Composable
@@ -52,20 +53,28 @@ fun TenantLocationsScreen(
 	var createCity by remember { mutableStateOf("") }
 	var createBranch by remember { mutableStateOf("") }
 	var createCode by remember { mutableStateOf("") }
+	var createDialogError by remember { mutableStateOf<String?>(null) }
 
 	LaunchedEffect(tenantId) { vm.load(tenantId) }
-	LaunchedEffect(Unit) {
-		vm.events.collect { event ->
-			when (event) {
-				is AdminUiEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
-				is AdminUiEvent.ShowSuccess -> snackbarHostState.showSnackbar(event.message)
-				AdminUiEvent.CloseDialog -> {
-					showCreate = false
-					createName = ""
-					createCity = ""
-					createBranch = ""
-					createCode = ""
-				}
+		LaunchedEffect(Unit) {
+			vm.events.collect { event ->
+				when (event) {
+					is AdminUiEvent.ShowError -> {
+						if (showCreate) {
+							createDialogError = event.message
+						} else {
+							snackbarHostState.showSnackbar(event.message)
+						}
+					}
+					is AdminUiEvent.ShowSuccess -> snackbarHostState.showSnackbar(event.message)
+					AdminUiEvent.CloseDialog -> {
+						showCreate = false
+						createName = ""
+						createCity = ""
+						createBranch = ""
+						createCode = ""
+						createDialogError = null
+					}
 
 				is AdminUiEvent.NavigateToTemplateDetail -> Unit
 			}
@@ -145,22 +154,62 @@ fun TenantLocationsScreen(
 	// Dialog crear
 	if (showCreate) {
 		AlertDialog(
-			onDismissRequest = { showCreate = false },
+			onDismissRequest = {
+				showCreate = false
+				createDialogError = null
+			},
 			title = { Text("Crear location") },
 			text = {
 				Column {
-					OutlinedTextField(createName, { createName = it }, label = { Text("Nombre") }, singleLine = true)
+					createDialogError?.let {
+						ErrorBanner(message = it)
+						Spacer(Modifier.height(8.dp))
+					}
+					OutlinedTextField(
+						createName,
+						{
+							createName = it
+							createDialogError = null
+						},
+						label = { Text("Nombre") },
+						singleLine = true
+					)
 					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(createCity, { createCity = it }, label = { Text("Ciudad (opcional)") }, singleLine = true)
+					OutlinedTextField(
+						createCity,
+						{
+							createCity = it
+							createDialogError = null
+						},
+						label = { Text("Ciudad (opcional)") },
+						singleLine = true
+					)
 					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(createBranch, { createBranch = it }, label = { Text("Branch (opcional)") }, singleLine = true)
+					OutlinedTextField(
+						createBranch,
+						{
+							createBranch = it
+							createDialogError = null
+						},
+						label = { Text("Branch (opcional)") },
+						singleLine = true
+					)
 					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(createCode, { createCode = it }, label = { Text("Code (opcional)") }, singleLine = true)
+					OutlinedTextField(
+						createCode,
+						{
+							createCode = it
+							createDialogError = null
+						},
+						label = { Text("Code (opcional)") },
+						singleLine = true
+					)
 				}
 			},
 			confirmButton = {
 				Button(
 					onClick = {
+						createDialogError = null
 						vm.create(
 							tenantId = tenantId,
 							name = createName,
@@ -172,7 +221,12 @@ fun TenantLocationsScreen(
 					enabled = createName.isNotBlank() && !st.loading
 				) { Text("Crear") }
 			},
-			dismissButton = { TextButton(onClick = { showCreate = false }) { Text("Cancelar") } }
+			dismissButton = {
+				TextButton(onClick = {
+					showCreate = false
+					createDialogError = null
+				}) { Text("Cancelar") }
+			}
 		)
 	}
 
