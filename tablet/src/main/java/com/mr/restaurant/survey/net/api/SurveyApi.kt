@@ -3,7 +3,11 @@ package com.mr.restaurant.survey.net.api
 import StartSurveyRequestDto
 import com.mr.restaurant.survey.net.dto.AlertViewDto
 import com.mr.restaurant.survey.net.dto.AnswerDto
+import com.mr.restaurant.survey.net.dto.DeviceViewDto
+import com.mr.restaurant.survey.net.dto.LocationDto
 import com.mr.restaurant.survey.net.dto.PageDto
+import com.mr.restaurant.survey.net.dto.PairTabletRequestDto
+import com.mr.restaurant.survey.net.dto.PairTabletResponseDto
 import com.mr.restaurant.survey.net.dto.QOptionDTO
 import com.mr.restaurant.survey.net.dto.RegisterDeviceRequestDto
 import com.mr.restaurant.survey.net.dto.StartSurveyResponseDto
@@ -25,6 +29,12 @@ interface SurveyApi {
 
 	@POST(ApiRoutes.REGISTER_DEVICE)
 	suspend fun registerDevice(@Body req: RegisterDeviceRequestDto)
+
+	@GET(ApiRoutes.DEVICES)
+	suspend fun listDevices(
+		@Query(ApiQuery.TENANT_ID) tenantId: String,
+		@Query(ApiQuery.DEVICE_TYPE) deviceType: String = "TABLET"
+	): List<DeviceViewDto>
 
 	@GET(ApiRoutes.CURRENT_TEMPLATE_FULL)
 	suspend fun getCurrentFull(
@@ -58,4 +68,10 @@ interface SurveyApi {
 
 	@GET(ApiRoutes.ALERTS)
 	suspend fun getAlerts(@Query(ApiQuery.TENANT_ID) tenantId: String): PageDto<AlertViewDto>
+
+	@GET(ApiRoutes.LOCATIONS)
+	suspend fun listLocations(@Query(ApiQuery.TENANT_ID) tenantId: String): List<LocationDto>
+
+	@POST(ApiRoutes.TABLET_PAIR)
+	suspend fun pairTablet(@Body req: PairTabletRequestDto): PairTabletResponseDto
 }

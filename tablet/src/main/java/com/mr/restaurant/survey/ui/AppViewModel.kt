@@ -28,9 +28,11 @@ class AppViewModel(
 	private val tenant: String,
 	private val templateId: String?,
 	private val locationId: String? = null,
+	private val deviceOwner: String? = null,
 	private val appContext: Context, // debe ser Application context
 	private val table: String = "A7",
-	private val waiter: String = "ERIKA"
+	private val waiter: String = "ERIKA",
+	private val knownWaiters: List<String> = emptyList()
 ) : ViewModel() {
 
 	private val _state = MutableStateFlow(UiState())
@@ -38,6 +40,8 @@ class AppViewModel(
 
 	private var syncListener: RtdbSyncListener? = null
 	private var runtimeLocationId: String? = locationId?.takeIf { it.isNotBlank() }
+	private var runtimeTable: String = table
+	private var runtimeWaiter: String = waiter
 
 	init {
 		bootstrap()
@@ -48,17 +52,22 @@ class AppViewModel(
 		setLoading()
 
 		runCatching {
-			val template = loadInitialTemplate()
-			val instanceId = startNewSurveyInstance(template)
-
+			refreshRemoteAssignmentBestEffort()
+			loadInitialTemplate()
+		}.onSuccess { template ->
 			_state.value = UiState(
 				loading = false,
-				instanceId = instanceId,
-				template = template
+				instanceId = null,
+				template = template,
+				stepIndex = -1
 			)
 		}.onFailure { e ->
 			setError(e.message ?: "Error de red")
 		}
+	}
+
+	fun retryBootstrap() {
+		bootstrap()
 	}
 
 	private suspend fun loadInitialTemplate(): SurveyTemplateDto =
@@ -71,16 +80,48 @@ class AppViewModel(
 
 		android.util.Log.i(
 			"SURVEY",
-			"Iniciando encuesta (app) | tenant=$tenant | templateId=${template.id} | locationId=$effectiveLocationId | table=$table | waiter=$waiter"
+			"Iniciando encuesta (app) | tenant=$tenant | templateId=${template.id} | locationId=$effectiveLocationId | table=$runtimeTable | waiter=$runtimeWaiter"
 		)
 
 		return repo.startSurvey(
 			tenant = tenant,
 			templateId = template.id,
 			locationId = effectiveLocationId,
-			table = table,
-			waiter = waiter
+			table = runtimeTable,
+			waiter = runtimeWaiter
 		).instanceId
+	}
+
+	fun defaultTable(): String = runtimeTable
+	fun defaultWaiter(): String = runtimeWaiter
+	fun waiterOptions(): List<String> = knownWaiters
+
+	fun beginSurvey(tableNo: String?, waiterName: String?) = viewModelScope.launch {
+		val current = _state.value
+		val template = current.template ?: run {
+			setError("Template no cargado")
+			return@launch
+		}
+		refreshRemoteAssignmentBestEffort()
+		runtimeTable = tableNo?.trim()?.takeIf { it.isNotBlank() } ?: runtimeTable.ifBlank { table }
+		runtimeWaiter = waiterName?.trim()?.takeIf { it.isNotBlank() } ?: runtimeWaiter.ifBlank { waiter }
+
+		_state.update { it.copy(loading = true, error = null, submitError = null) }
+		runCatching { startNewSurveyInstance(template) }
+			.onSuccess { instanceId ->
+				_state.update {
+					it.copy(
+						loading = false,
+						error = null,
+						submitError = null,
+						instanceId = instanceId,
+						stepIndex = 0
+					)
+				}
+			}
+			.onFailure { e ->
+				setError(e.message ?: "No se pudo iniciar la encuesta")
+			}
 	}
 
 	fun next() {
@@ -109,11 +150,10 @@ class AppViewModel(
 					return@launch
 				}
 
-				val newInstanceId = startNewSurveyInstance(tpl)
-
 				_state.update {
 					it.copy(
-						instanceId = newInstanceId,
+						instanceId = null,
+						template = tpl,
 						stepIndex = -1,
 						error = null,
 						submitError = null,
@@ -143,19 +183,16 @@ class AppViewModel(
 					val current = _state.value
 					val currentTemplateId = current.template?.id
 					val newTpl = repo.refreshCurrentTemplate(tenant, runtimeLocationId)
-					val newInstanceId =
-						if (currentTemplateId != null && currentTemplateId != newTpl.id) {
-							startNewSurveyInstance(newTpl)
-						} else {
-							current.instanceId
-						}
+					val shouldResetInstance = currentTemplateId != null && currentTemplateId != newTpl.id
+					val newInstanceId = if (shouldResetInstance) null else current.instanceId
+					val newStepIndex = if (shouldResetInstance) -1 else current.stepIndex
 
 					_state.value = current.copy(
 						template = newTpl,
 						instanceId = newInstanceId,
 						error = null,
 						submitError = null,
-						stepIndex = -1
+						stepIndex = newStepIndex
 					)
 				}.onFailure { e ->
 					setError(e.message ?: "Error refrescando encuesta")
@@ -177,6 +214,29 @@ class AppViewModel(
 			}
 		}
 		return inferred
+	}
+
+	private suspend fun refreshRemoteAssignmentBestEffort() {
+		val owner = deviceOwner?.trim()?.takeIf { it.isNotBlank() } ?: return
+		runCatching { repo.getTabletAssignment(tenant, owner) }
+			.onSuccess { device ->
+				if (device == null) return@onSuccess
+				device.defaultTableNo
+					?.trim()
+					?.takeIf { it.isNotBlank() }
+					?.let { runtimeTable = it }
+				device.assignedWaiterName
+					?.trim()
+					?.takeIf { it.isNotBlank() }
+					?.let { runtimeWaiter = it }
+				android.util.Log.i(
+					"SURVEY",
+					"Asignacion tablet aplicada | owner=$owner | label=${device.label} | mesa=${device.defaultTableNo} | mesero=${device.assignedWaiterName} | active=${device.active}"
+				)
+			}
+			.onFailure { e ->
+				android.util.Log.w("SURVEY", "No se pudo cargar asignacion remota de tablet: ${e.message}")
+			}
 	}
 
 	private fun setLoading() {

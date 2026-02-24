@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -109,23 +110,33 @@ class AppFcmService : FirebaseMessagingService() {
 			FirebaseMessaging.getInstance().unsubscribeFromTopic("tenant-mr-restaurant")
 				.addOnSuccessListener { Log.i("FCM", "Desuscrito de topic legacy tenant-mr-restaurant") }
 				.addOnFailureListener { Log.w("FCM", "No se pudo desuscribir de topic legacy tenant-mr-restaurant", it) }
-			register(cfg.tenantId, cfg.locationId, token)
+			register(
+				context = context,
+				tenantId = cfg.tenantId,
+				locationId = cfg.locationId,
+				token = token
+			)
 		}
 
-		private fun register(tenantId: String, locationId: String, token: String) {
+		private fun register(context: Context, tenantId: String, locationId: String, token: String) {
 			val api = Network.createApi(BuildConfig.DEFAULT_BASE_URL)
 			val repo = SurveyRepository(api)
+			val deviceId = Settings.Secure.getString(
+				context.contentResolver,
+				Settings.Secure.ANDROID_ID
+			).orEmpty()
+			val owner = if (deviceId.isBlank()) "Tablet" else "Tablet:$deviceId"
 			scope.launch {
 				runCatching {
 					repo.registerDevice(
 						tenantId = tenantId,
 						token = token,
-						owner = "Tablet",
+						owner = owner,
 						role = "MANAGER",
 						locationId = locationId
 					)
 				}.onSuccess {
-					Log.i("FCM", "Token registrado en backend tenant=$tenantId locationId=$locationId")
+					Log.i("FCM", "Token registrado en backend tenant=$tenantId locationId=$locationId owner=$owner")
 				}.onFailure {
 					Log.e("FCM", "Error registrando token", it)
 				}

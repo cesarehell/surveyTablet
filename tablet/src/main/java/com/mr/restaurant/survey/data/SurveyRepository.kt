@@ -5,7 +5,11 @@ import android.util.Log
 import com.mr.restaurant.survey.net.api.SurveyApi
 import com.mr.restaurant.survey.net.dto.AlertViewDto
 import com.mr.restaurant.survey.net.dto.AnswerDto
+import com.mr.restaurant.survey.net.dto.DeviceViewDto
+import com.mr.restaurant.survey.net.dto.LocationDto
 import com.mr.restaurant.survey.net.dto.PageDto
+import com.mr.restaurant.survey.net.dto.PairTabletRequestDto
+import com.mr.restaurant.survey.net.dto.PairTabletResponseDto
 import com.mr.restaurant.survey.net.dto.QuestionType
 import com.mr.restaurant.survey.net.dto.RegisterDeviceRequestDto
 import com.mr.restaurant.survey.net.dto.StartSurveyResponseDto
@@ -112,4 +116,13 @@ class SurveyRepository(
 	}
 
 	suspend fun getAlerts(tenantId: String): PageDto<AlertViewDto> = api.getAlerts(tenantId)
+
+	suspend fun listLocations(tenantId: String): List<LocationDto> = api.listLocations(tenantId)
+
+	suspend fun pairTablet(pairingCode: String, deviceId: String): PairTabletResponseDto =
+		api.pairTablet(PairTabletRequestDto(pairingCode = pairingCode.trim(), deviceId = deviceId))
+
+	suspend fun getTabletAssignment(tenantId: String, owner: String): DeviceViewDto? =
+		api.listDevices(tenantId = tenantId, deviceType = "TABLET")
+			.firstOrNull { it.owner?.trim() == owner.trim() }
 }
