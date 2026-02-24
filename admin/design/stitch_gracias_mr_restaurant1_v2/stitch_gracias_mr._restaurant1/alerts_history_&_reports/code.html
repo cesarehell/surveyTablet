@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alerts History &amp; Reports - Mr. Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7cee2b",
+                        "background-light": "#f7f8f6",
+                        "background-dark": "#182210",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .japandi-card {
+            background-color: white;
+            border: 1px solid rgba(124, 238, 43, 0.1);
+            transition: all 0.2s ease;
+        }
+        .kawaii-shadow {
+            box-shadow: 0 4px 0 0 rgba(124, 238, 43, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 pt-12 pb-4">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary rounded-xl flex items-center justify-center kawaii-shadow">
+<span class="material-symbols-outlined text-background-dark text-2xl">restaurant</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight">Alerts History</h1>
+<p class="text-xs text-slate-500 font-medium">Mr. Restaurant Admin</p>
+</div>
+</div>
+<button class="size-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center border border-primary/10">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+</button>
+</div>
+<!-- Summary Stats Bar -->
+<div class="flex gap-3">
+<div class="flex-1 japandi-card p-4 rounded-xl kawaii-shadow">
+<p class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Total Alerts</p>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-bold">1,284</span>
+<span class="text-[10px] text-primary font-bold">+12%</span>
+</div>
+</div>
+<div class="flex-1 japandi-card p-4 rounded-xl kawaii-shadow border-l-4 border-l-primary">
+<p class="text-[10px] uppercase tracking-wider font-bold text-slate-400 mb-1">Avg. Resolution</p>
+<div class="flex items-baseline gap-1">
+<span class="text-2xl font-bold">14m 20s</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Search and Filters -->
+<section class="px-6 py-4 space-y-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-white dark:bg-slate-800 border-none rounded-xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/30 transition-all placeholder:text-slate-400 kawaii-shadow" placeholder="Search by staff or location..." type="text"/>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-primary text-background-dark text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                All Time
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium border border-primary/10">
+                Resolved
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium border border-primary/10">
+                Food Quality
+            </button>
+<button class="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-medium border border-primary/10">
+                Service
+            </button>
+</div>
+</section>
+<!-- Alerts List -->
+<main class="flex-1 px-6 pb-24 space-y-4">
+<h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest px-1">Past 24 Hours</h2>
+<!-- Alert Card 1 -->
+<div class="japandi-card p-4 rounded-xl kawaii-shadow relative overflow-hidden group">
+<div class="absolute right-0 top-0 h-full w-1 bg-primary/40"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-400">ac_unit</span>
+</div>
+<div>
+<h3 class="font-bold text-sm">Cold Food Complaint</h3>
+<p class="text-xs text-slate-500">Table 12 • Downtown Branch</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">2h ago</span>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-800 pt-3 mt-3">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-xs text-background-dark/60">person</span>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Sarah K.</span>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-[10px] font-bold">Resolved in 12m</span>
+</div>
+</div>
+</div>
+<!-- Alert Card 2 -->
+<div class="japandi-card p-4 rounded-xl kawaii-shadow relative overflow-hidden group">
+<div class="absolute right-0 top-0 h-full w-1 bg-primary/40"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-400">sentiment_dissatisfied</span>
+</div>
+<div>
+<h3 class="font-bold text-sm">Long Wait Time</h3>
+<p class="text-xs text-slate-500">Table 04 • Uptown Mall</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">5h ago</span>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-800 pt-3 mt-3">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-xs text-background-dark/60">person</span>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Marcus L.</span>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-[10px] font-bold">Resolved in 18m</span>
+</div>
+</div>
+</div>
+<!-- Alert Card 3 -->
+<div class="japandi-card p-4 rounded-xl kawaii-shadow relative overflow-hidden group">
+<div class="absolute right-0 top-0 h-full w-1 bg-primary/40"></div>
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-400">cleaning_services</span>
+</div>
+<div>
+<h3 class="font-bold text-sm">Spill Alert</h3>
+<p class="text-xs text-slate-500">Aisle 3 • Downtown Branch</p>
+</div>
+</div>
+<span class="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">Yesterday</span>
+</div>
+<div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-800 pt-3 mt-3">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-xs text-background-dark/60">person</span>
+</div>
+<span class="text-xs font-medium text-slate-600 dark:text-slate-400">Chen W.</span>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-[10px] font-bold">Resolved in 4m</span>
+</div>
+</div>
+</div>
+<!-- Empty State Filler -->
+<div class="py-8 flex flex-col items-center justify-center opacity-40">
+<span class="material-symbols-outlined text-5xl mb-2">auto_awesome</span>
+<p class="text-xs font-medium italic">End of recent history</p>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-primary/10 px-6 pb-8 pt-3 z-30">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">sensors</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Live</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">history</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">History</span>
+<div class="size-1 bg-primary rounded-full"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Reports</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-tighter">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Map/Background Pattern Overlay (Decorative) -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1]">
+<svg height="100%" width="100%">
+<pattern height="40" id="pattern-hex" patternunits="userSpaceOnUse" width="40" x="0" y="0">
+<path d="M20 0L40 10V30L20 40L0 30V10L20 0Z" fill="none" stroke="currentColor" stroke-width="1"></path>
+</pattern>
+<rect fill="url(#pattern-hex)" height="100%" width="100%"></rect>
+</svg>
+</div>
+</body></html>

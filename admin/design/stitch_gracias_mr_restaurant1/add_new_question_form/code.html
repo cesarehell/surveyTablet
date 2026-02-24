@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Add New Question - Mr. Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#56c91d",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#162111",
+                        "sage-muted": "#8ea683",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .kawaii-shadow {
+            box-shadow: 0 8px 30px rgba(86, 201, 29, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-md mx-auto bg-white dark:bg-background-dark overflow-x-hidden">
+<!-- Top App Bar (iOS style) -->
+<header class="sticky top-0 z-20 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 justify-between border-b border-slate-100 dark:border-slate-800">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">close</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">Add Question</h2>
+<div class="flex size-10 items-center justify-end">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">more_horiz</span>
+</div>
+</header>
+<main class="flex-1 pb-32">
+<!-- Mr. Restaurant Branding Accent -->
+<div class="px-6 pt-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-2xl">restaurant</span>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-widest font-bold text-primary/60">Survey Builder</p>
+<p class="text-xs text-slate-400">Step 2 of 5: Question Design</p>
+</div>
+</div>
+<!-- Question Text Section -->
+<section class="px-6 pt-8">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider mb-3 px-1">Question Text</h3>
+<div class="w-full">
+<label class="block">
+<textarea class="form-input flex w-full resize-none overflow-hidden rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/20 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 focus:border-primary min-h-[140px] placeholder:text-slate-400 p-5 text-base font-normal leading-relaxed transition-all shadow-sm" placeholder="e.g., How would you rate our ramen today?"></textarea>
+</label>
+</div>
+</section>
+<!-- Question Type Section -->
+<section class="pt-8">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider mb-4 px-7">Response Type</h3>
+<div class="flex gap-3 px-6 overflow-x-auto hide-scrollbar">
+<button class="flex h-11 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary px-6 text-white shadow-lg shadow-primary/20 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-sm">thumb_up</span>
+<p class="text-sm font-semibold">Likert Scale</p>
+</button>
+<button class="flex h-11 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-6 text-slate-600 dark:text-slate-300 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<p class="text-sm font-medium">NPS</p>
+</button>
+<button class="flex h-11 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-6 text-slate-600 dark:text-slate-300 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+<p class="text-sm font-medium">Open Text</p>
+</button>
+<button class="flex h-11 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-6 text-slate-600 dark:text-slate-300 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-sm">list</span>
+<p class="text-sm font-medium">Multiple Choice</p>
+</button>
+</div>
+</section>
+<!-- Preview Section -->
+<section class="px-6 pt-10">
+<div class="flex items-center justify-between mb-4 px-1">
+<h3 class="text-slate-900 dark:text-slate-100 text-sm font-bold uppercase tracking-wider">Live Preview</h3>
+<span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase">Visual Mode</span>
+</div>
+<!-- Kawaii Soft-Layered Card -->
+<div class="relative group">
+<!-- Decorative back layer -->
+<div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-sage-muted/20 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+<div class="relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 kawaii-shadow">
+<div class="flex flex-col items-center gap-6">
+<p class="text-slate-400 text-sm italic">Question preview will appear here...</p>
+<!-- Emoji Scale Preview -->
+<div class="flex justify-between w-full max-w-[280px]">
+<div class="flex flex-col items-center gap-2 opacity-40">
+<span class="text-3xl grayscale">😫</span>
+<span class="text-[10px] font-bold text-slate-400">1</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<span class="text-3xl grayscale">🙁</span>
+<span class="text-[10px] font-bold text-slate-400">2</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="p-1 rounded-full bg-primary/10 ring-4 ring-primary/5">
+<span class="text-3xl">😐</span>
+</div>
+<span class="text-[10px] font-bold text-primary">3</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<span class="text-3xl grayscale">😊</span>
+<span class="text-[10px] font-bold text-slate-400">4</span>
+</div>
+<div class="flex flex-col items-center gap-2 opacity-40">
+<span class="text-3xl grayscale">😍</span>
+<span class="text-[10px] font-bold text-slate-400">5</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p class="mt-4 text-center text-xs text-slate-400 px-4">
+                    Responses are collected on a 5-point scale using Mr. Restaurant's signature Kawaii emojis.
+                </p>
+</section>
+</main>
+<!-- Sticky Bottom Bar -->
+<footer class="fixed bottom-0 left-0 right-0 z-30 flex max-w-md mx-auto items-center justify-between gap-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg px-6 py-5 border-t border-slate-100 dark:border-slate-800">
+<button class="flex-1 h-14 rounded-xl text-slate-500 dark:text-slate-400 font-bold text-base hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                Cancel
+            </button>
+<button class="flex-[2] h-14 bg-primary text-white rounded-xl font-bold text-base shadow-lg shadow-primary/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+                Save Question
+            </button>
+</footer>
+</div>
+</body></html>

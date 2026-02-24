@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Design System: Components</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#7cee2b",
+                        "sage": "#728961",
+                        "beige": "#f2f4f0",
+                        "warm-gray": "#e5e7e2",
+                        "background-light": "#f7f8f6",
+                        "background-dark": "#182210",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .kawaii-shadow {
+            box-shadow: 0 4px 14px 0 rgba(124, 238, 43, 0.15);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-warm-gray dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-slate-900 kawaii-shadow">
+<span class="material-symbols-outlined text-2xl font-bold">restaurant</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight">Design System</h1>
+<p class="text-[10px] uppercase tracking-widest text-sage font-semibold">Variant 2 of 2 • Components</p>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full bg-beige dark:bg-slate-800 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">search</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto px-6 py-8 space-y-10">
+<!-- Action Buttons Section -->
+<section>
+<h2 class="text-sm font-bold text-sage uppercase tracking-wider mb-4">Action Buttons</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="space-y-3">
+<button class="w-full bg-sage text-white font-semibold py-4 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+                        Primary Sage
+                    </button>
+<p class="text-[11px] text-center text-slate-500">Filled / High Emphasis</p>
+</div>
+<div class="space-y-3">
+<button class="w-full bg-beige dark:bg-slate-800 text-sage dark:text-primary font-semibold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-warm-gray transition-colors">
+<span class="material-symbols-outlined text-xl">add_circle</span>
+                        Secondary
+                    </button>
+<p class="text-[11px] text-center text-slate-500">Neutral / Mid Emphasis</p>
+</div>
+</div>
+</section>
+<!-- Status Badges Section -->
+<section>
+<h2 class="text-sm font-bold text-sage uppercase tracking-wider mb-4">Status Badges</h2>
+<div class="flex flex-wrap gap-3">
+<span class="px-4 py-1.5 rounded-full bg-primary/20 text-emerald-800 dark:text-primary text-xs font-bold border border-primary/30 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                    ACTIVE
+                </span>
+<span class="px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold border border-amber-200 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    WARNING
+                </span>
+<span class="px-4 py-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                    CRITICAL
+                </span>
+</div>
+</section>
+<!-- Input Fields Section -->
+<section>
+<h2 class="text-sm font-bold text-sage uppercase tracking-wider mb-4">Input Fields</h2>
+<div class="space-y-4">
+<div class="space-y-1.5">
+<label class="text-xs font-medium text-slate-500 ml-1">Restaurant Name</label>
+<input class="w-full px-5 py-4 bg-white dark:bg-slate-900 border border-warm-gray dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-300" placeholder="Enter name..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-1 space-y-1.5">
+<label class="text-xs font-medium text-slate-500 ml-1">Toggle Setting</label>
+<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl border border-warm-gray dark:border-slate-700">
+<span class="text-sm font-medium">Notifications</span>
+<div class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-beige dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Emoji Cards (Kawaii Tech) -->
+<section>
+<h2 class="text-sm font-bold text-sage uppercase tracking-wider mb-4">Emoji Cards</h2>
+<div class="grid grid-cols-4 gap-3">
+<div class="aspect-square bg-white dark:bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 border border-warm-gray dark:border-slate-800 kawaii-shadow">
+<span class="text-2xl mb-1">🍱</span>
+<span class="text-[10px] font-semibold text-slate-500">Menu</span>
+</div>
+<div class="aspect-square bg-white dark:bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 border border-warm-gray dark:border-slate-800">
+<span class="text-2xl mb-1">🍵</span>
+<span class="text-[10px] font-semibold text-slate-500">Drink</span>
+</div>
+<div class="aspect-square bg-white dark:bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 border border-warm-gray dark:border-slate-800">
+<span class="text-2xl mb-1">🍥</span>
+<span class="text-[10px] font-semibold text-slate-500">Sides</span>
+</div>
+<div class="aspect-square bg-white dark:bg-slate-900 rounded-xl flex flex-col items-center justify-center p-2 border border-warm-gray dark:border-slate-800">
+<span class="text-2xl mb-1">🍡</span>
+<span class="text-[10px] font-semibold text-slate-500">Sweet</span>
+</div>
+</div>
+</section>
+<!-- Glassmorphism Card -->
+<section>
+<h2 class="text-sm font-bold text-sage uppercase tracking-wider mb-4">Glassmorphism Variant</h2>
+<div class="relative h-48 w-full rounded-2xl overflow-hidden kawaii-shadow">
+<img class="absolute inset-0 w-full h-full object-cover" data-alt="Overhead shot of Japanese sushi set on a clean wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0NyheAnxKhoxJtskAsj7vJFhoeERmFlp9_8B77BPnLVnP6jnN8l2CpIKA7THNOoZ8m4426PW275ipDSyrIH_s8s2zVQ3HNM0DhW-hMLshhNsqszt1gs0J0IzuCyVLgaeR0geBzB1T-NtoNdldBKo5ZO4wUYw8cfMx6gAcVY_ChmHdCEM2dpzUOmaqut7YfQjMUGNNCtSTdI5zi7OMq3e-lRIR0CEDgG-mzFT17oZSvlw5abpqQtptiUvmqSqfYeR-pYlOixOcJo1I"/>
+<div class="absolute inset-0 flex items-center justify-center p-6">
+<div class="glass-card w-full h-full rounded-xl p-5 flex flex-col justify-between">
+<div>
+<h3 class="text-white font-bold text-xl drop-shadow-md">Mr. Restaurant Admin</h3>
+<p class="text-white/80 text-xs font-medium">System Analytics Dashboard</p>
+</div>
+<div class="flex justify-between items-end">
+<span class="px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg text-[10px] font-bold text-white border border-white/30 tracking-widest uppercase">Premium Plan</span>
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-slate-900">
+<span class="material-symbols-outlined text-lg font-bold">trending_up</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-white dark:bg-slate-950 border-t border-warm-gray dark:border-slate-800 px-6 py-3 pb-8 flex items-center justify-between">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl font-variation-fill">category</span>
+<span class="text-[10px] font-bold">Components</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">palette</span>
+<span class="text-[10px] font-bold">Styles</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">article</span>
+<span class="text-[10px] font-bold">Docs</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-bold">Settings</span>
+</a>
+</nav>
+</body></html>

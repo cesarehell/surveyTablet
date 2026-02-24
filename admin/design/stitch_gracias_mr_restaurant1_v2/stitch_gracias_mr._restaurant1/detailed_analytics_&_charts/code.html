@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detailed Analytics &amp; Charts - Mr. Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#56c91d",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#162111",
+                        "surface-dark": "#1f2b18",
+                        "card-dark": "#24311d",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .radar-grid {
+            stroke: rgba(86, 201, 29, 0.1);
+            stroke-width: 1;
+            fill: none;
+        }
+        .kawaii-glow {
+            box-shadow: 0 0 15px rgba(86, 201, 29, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-display">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-4 py-3 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary kawaii-glow">
+<span class="material-symbols-outlined text-2xl">face_6</span>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">Analytics Deep Dive</h1>
+<p class="text-[10px] text-primary font-medium tracking-wider uppercase">Mr. Restaurant Performance</p>
+</div>
+</div>
+<button class="size-10 rounded-full bg-surface-dark flex items-center justify-center border border-primary/20">
+<span class="material-symbols-outlined text-slate-300">calendar_today</span>
+</button>
+</header>
+<main class="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+<!-- Period Selector (Segmented Control) -->
+<div class="flex p-1 bg-surface-dark rounded-xl border border-primary/5">
+<button class="flex-1 py-2 text-xs font-semibold rounded-lg bg-primary text-background-dark transition-all">Day</button>
+<button class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400">Week</button>
+<button class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-400">Month</button>
+</div>
+<!-- Radar Chart Card -->
+<section class="bg-card-dark rounded-3xl p-6 border border-primary/10 shadow-xl relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h2 class="text-lg font-bold">Performance Radar</h2>
+<p class="text-xs text-slate-400">Location Comparison Metrics</p>
+</div>
+<div class="px-2 py-1 bg-primary/10 rounded-lg text-[10px] font-bold text-primary border border-primary/20">LIVE</div>
+</div>
+<!-- Placeholder for Radar Chart Visualization -->
+<div class="relative aspect-square w-full max-w-[280px] mx-auto flex items-center justify-center my-4">
+<!-- Decorative Radar Rings -->
+<div class="absolute inset-0 border border-primary/10 rounded-full scale-100"></div>
+<div class="absolute inset-0 border border-primary/10 rounded-full scale-75"></div>
+<div class="absolute inset-0 border border-primary/10 rounded-full scale-50"></div>
+<!-- Radar Shape (SVG) -->
+<svg class="w-full h-full drop-shadow-2xl" viewbox="0 0 100 100">
+<!-- Axes -->
+<line class="stroke-primary/20" stroke-width="0.5" x1="50" x2="50" y1="50" y2="10"></line>
+<line class="stroke-primary/20" stroke-width="0.5" x1="50" x2="85" y1="50" y2="70"></line>
+<line class="stroke-primary/20" stroke-width="0.5" x1="50" x2="15" y1="50" y2="70"></line>
+<!-- Data Polygon 1: Shibuya Branch -->
+<polygon fill="rgba(86, 201, 29, 0.4)" points="50,20 75,65 25,60" stroke="#56c91d" stroke-width="1"></polygon>
+<!-- Data Polygon 2: Shinjuku Branch -->
+<polygon fill="rgba(255, 255, 255, 0.1)" points="50,35 65,55 40,75" stroke="rgba(255, 255, 255, 0.3)" stroke-dasharray="2" stroke-width="1"></polygon>
+</svg>
+<!-- Labels -->
+<span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[10px] font-bold text-primary uppercase tracking-widest">Service</span>
+<span class="absolute -bottom-2 right-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Food Quality</span>
+<span class="absolute -bottom-2 left-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cleanliness</span>
+</div>
+<!-- Legend -->
+<div class="flex items-center justify-center gap-6 mt-6">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-primary"></div>
+<span class="text-[11px] font-medium text-slate-300">Shibuya Center</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-slate-500"></div>
+<span class="text-[11px] font-medium text-slate-500">Shinjuku East</span>
+</div>
+</div>
+<!-- Kawaii Mascot Accent -->
+<div class="absolute -bottom-2 -right-2 opacity-10">
+<span class="material-symbols-outlined text-8xl">restaurant_menu</span>
+</div>
+</section>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-card-dark p-4 rounded-2xl border border-primary/5 flex flex-col items-center justify-center text-center">
+<span class="text-2xl font-bold text-primary">8.4</span>
+<span class="text-[10px] font-medium text-slate-500 uppercase mt-1">Sentiment Score</span>
+</div>
+<div class="bg-card-dark p-4 rounded-2xl border border-primary/5 flex flex-col items-center justify-center text-center">
+<span class="text-2xl font-bold text-slate-100">1,284</span>
+<span class="text-[10px] font-medium text-slate-500 uppercase mt-1">Total Responses</span>
+</div>
+</div>
+<!-- Keyword Insights Section -->
+<section class="space-y-4 pb-24">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">chat_bubble</span>
+                    Voice of the Customer
+                </h3>
+<button class="text-[10px] text-primary font-bold uppercase underline decoration-primary/30 underline-offset-4">Export CSV</button>
+</div>
+<div class="bg-card-dark rounded-2xl p-5 border border-primary/5 space-y-5">
+<!-- Bar 1 -->
+<div class="space-y-2">
+<div class="flex justify-between text-[11px] font-medium">
+<span class="text-slate-300 italic">"Delicious"</span>
+<span class="text-primary">84%</span>
+</div>
+<div class="h-2 w-full bg-surface-dark rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[84%] kawaii-glow"></div>
+</div>
+</div>
+<!-- Bar 2 -->
+<div class="space-y-2">
+<div class="flex justify-between text-[11px] font-medium">
+<span class="text-slate-300 italic">"Friendly Staff"</span>
+<span class="text-primary">62%</span>
+</div>
+<div class="h-2 w-full bg-surface-dark rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 rounded-full w-[62%]"></div>
+</div>
+</div>
+<!-- Bar 3 -->
+<div class="space-y-2">
+<div class="flex justify-between text-[11px] font-medium">
+<span class="text-slate-300 italic">"Wait Time"</span>
+<span class="text-slate-400">31%</span>
+</div>
+<div class="h-2 w-full bg-surface-dark rounded-full overflow-hidden">
+<div class="h-full bg-slate-600 rounded-full w-[31%]"></div>
+</div>
+</div>
+<!-- Bar 4 -->
+<div class="space-y-2">
+<div class="flex justify-between text-[11px] font-medium">
+<span class="text-slate-300 italic">"Cozy Interior"</span>
+<span class="text-primary">28%</span>
+</div>
+<div class="h-2 w-full bg-surface-dark rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 rounded-full w-[28%]"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (Fixed) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-dark/95 backdrop-blur-xl border-t border-primary/10 px-4 pb-8 pt-2 safe-area-bottom">
+<div class="flex justify-around items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">grid_view</span>
+<p class="text-[10px] font-medium">Home</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl fill-[1]">insights</span>
+<p class="text-[10px] font-bold">Analytics</p>
+<div class="w-1 h-1 rounded-full bg-primary"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">assignment</span>
+<p class="text-[10px] font-medium">Surveys</p>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-500" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<p class="text-[10px] font-medium">Settings</p>
+</a>
+</div>
+</nav>
+<!-- Background Pattern Accent -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1]" style="background-image: radial-gradient(#56c91d 1px, transparent 1px); background-size: 24px 24px;"></div>
+</body></html>

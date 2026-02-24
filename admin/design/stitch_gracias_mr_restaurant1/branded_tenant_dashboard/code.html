@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mr. Restaurant - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#115372", // Deep blue from logo
+                        secondary: "#FF453A", // Soft coral/red from logo
+                        accent: "#FDE6B0", // Cream from logo face
+                        mint: "#A3D9A5", // Green from bowtie
+                        "background-light": "#F8F9FA",
+                        "background-dark": "#0F172A",
+                    },
+                    fontFamily: {
+                        display: ["Outfit", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        body {
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-status-bar {
+            height: 44px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 min-h-screen pb-24">
+<header class="bg-primary pt-12 pb-20 px-6 rounded-b-[3rem] shadow-lg">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-accent rounded-2xl overflow-hidden border-2 border-white/20">
+<img alt="Mr. Restaurant Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5wmPu-BpLr7ZWPHNyjxjheGaAAsY9zupu_oqVrLKr-3t-ic3_AiW2tCa2R8BwZST67FM3VXn7_IF6Y6Ez7e0TJxAiku36KO5umVD_-Pefb8XJH7_JIOr_kaXUJrsGuAblJgkNM3qTzcLH7txW3ajJv42DdVRy9NPTEiexMy1WTtDCR16TGedchzYgfyrxNZa0uIapVf5dw_bjug8LindCEl3VGFrkdaxu0nLz9m0L_e8Dw_HTWa0cB6Xvzu59HFkr0Z-5CLzmLchO"/>
+</div>
+<div>
+<h1 class="text-white text-xl font-bold leading-tight">Bonjour, Chef!</h1>
+<p class="text-white/70 text-sm">Le Petit Bistro • Paris</p>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
+<span class="material-icons-round">notifications</span>
+</button>
+</div>
+<div class="relative">
+<span class="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-white/50">search</span>
+<input class="w-full bg-white/10 border-none rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-white/40 focus:ring-2 focus:ring-mint/50 transition-all" placeholder="Search insights..." type="text"/>
+</div>
+</header>
+<main class="px-6 -mt-12 space-y-6">
+<div class="grid grid-cols-2 gap-4">
+<div class="glass p-5 rounded-3xl shadow-sm flex flex-col items-center justify-center text-center">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Overall Rating</span>
+<div class="w-16 h-16 bg-mint/20 rounded-full flex items-center justify-center mb-2">
+<span class="text-4xl">😊</span>
+</div>
+<div class="text-2xl font-bold text-primary dark:text-accent">4.8</div>
+<div class="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
+<span class="material-icons-round text-xs">trending_up</span> +0.2 this week
+                </div>
+</div>
+<div class="glass p-5 rounded-3xl shadow-sm flex flex-col items-center justify-center text-center">
+<span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Responses</span>
+<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+<span class="material-icons-round text-primary dark:text-accent text-3xl">poll</span>
+</div>
+<div class="text-2xl font-bold text-primary dark:text-accent">1,284</div>
+<div class="text-[10px] text-slate-400 font-medium">Last 30 days</div>
+</div>
+</div>
+<section class="space-y-3">
+<div class="flex justify-between items-center px-1">
+<h2 class="font-bold text-lg">Needs Attention</h2>
+<span class="text-xs font-medium text-secondary">View All</span>
+</div>
+<div class="bg-secondary/10 border border-secondary/20 p-4 rounded-3xl flex gap-4 items-start">
+<div class="w-10 h-10 bg-secondary rounded-2xl flex items-center justify-center text-white shrink-0">
+<span class="material-icons-round">priority_high</span>
+</div>
+<div>
+<h3 class="font-bold text-secondary text-sm">Wait Time Alert</h3>
+<p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                        3 customers reported wait times over 45 minutes in the last hour.
+                    </p>
+</div>
+</div>
+</section>
+<section class="space-y-4">
+<h2 class="font-bold text-lg px-1">Satisfaction Breakdown</h2>
+<div class="glass p-6 rounded-3xl space-y-4">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-medium">
+<span class="flex items-center gap-2">🤩 Excellent</span>
+<span>65%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-mint rounded-full w-[65%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-medium">
+<span class="flex items-center gap-2">😊 Good</span>
+<span>25%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 rounded-full w-[25%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-medium">
+<span class="flex items-center gap-2">😐 Average</span>
+<span>8%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-accent rounded-full w-[8%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-medium">
+<span class="flex items-center gap-2">☹️ Poor</span>
+<span>2%</span>
+</div>
+<div class="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full w-[2%]"></div>
+</div>
+</div>
+</div>
+</section>
+<section class="space-y-3 pb-4">
+<h2 class="font-bold text-lg px-1">Recent Feedback</h2>
+<div class="space-y-3">
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-2">
+<span class="text-xl">🤩</span>
+<div>
+<h4 class="text-sm font-bold">Excellent Service!</h4>
+<p class="text-[10px] text-slate-400">2 minutes ago • Table 12</p>
+</div>
+</div>
+<span class="material-icons-round text-slate-300">chevron_right</span>
+</div>
+<p class="text-xs text-slate-600 dark:text-slate-400 italic line-clamp-1">
+                        "The pasta carbonara was the best I've had in years. Great job!"
+                    </p>
+</div>
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-2">
+<span class="text-xl">😐</span>
+<div>
+<h4 class="text-sm font-bold">A bit noisy</h4>
+<p class="text-[10px] text-slate-400">15 minutes ago • Takeout</p>
+</div>
+</div>
+<span class="material-icons-round text-slate-300">chevron_right</span>
+</div>
+<p class="text-xs text-slate-600 dark:text-slate-400 italic line-clamp-1">
+                        "Food was great but the music was a little too loud..."
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200/50 dark:border-slate-800/50 px-8 py-4 flex justify-between items-center rounded-t-[2.5rem] z-50">
+<button class="flex flex-col items-center gap-1 text-primary dark:text-accent">
+<span class="material-icons-round">dashboard</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">chat_bubble_outline</span>
+<span class="text-[10px] font-medium">Reviews</span>
+</button>
+<div class="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white -mt-10 shadow-xl shadow-primary/20">
+<span class="material-icons-round text-2xl">add</span>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">bar_chart</span>
+<span class="text-[10px] font-medium">Stats</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-icons-round">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</nav>
+<button class="fixed right-6 bottom-28 w-12 h-12 bg-white dark:bg-slate-800 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center z-40" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-icons-round text-slate-600 dark:text-accent">dark_mode</span>
+</button>
+
+</body></html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mr. Restaurant - Refined Metrics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#115372", // Deep blue from logo
+                        secondary: "#FF453A", // Soft coral/red
+                        accent: "#FDE6B0", // Cream
+                        sage: "#A3D9A5", // Soft sage green
+                        "pastel-blue": "#E3F2FD",
+                        "pastel-green": "#E8F5E9",
+                        "pastel-yellow": "#FFFDE7",
+                        "pastel-orange": "#FFF3E0",
+                        "pastel-red": "#FFEBEE",
+                        "background-light": "#FDFCFB", // Japandi off-white
+                        "background-dark": "#0F172A",
+                    },
+                    fontFamily: {
+                        display: ["Outfit", "sans-serif"],
+                    },
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                        '4xl': '2rem',
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply font-display bg-background-light text-slate-800 dark:bg-background-dark dark:text-slate-100 antialiased;
+                -webkit-tap-highlight-color: transparent;
+            }
+        }
+        .soft-glass {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(17, 83, 114, 0.04);
+        }
+        .dark .soft-glass {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+        .line-chart-path {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 0;
+        }
+        .ios-safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32">
+<header class="pt-14 pb-12 px-6">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="w-14 h-14 bg-accent rounded-[24px] overflow-hidden border-2 border-white shadow-sm">
+<img alt="Mr. Restaurant Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5wmPu-BpLr7ZWPHNyjxjheGaAAsY9zupu_oqVrLKr-3t-ic3_AiW2tCa2R8BwZST67FM3VXn7_IF6Y6Ez7e0TJxAiku36KO5umVD_-Pefb8XJH7_JIOr_kaXUJrsGuAblJgkNM3qTzcLH7txW3ajJv42DdVRy9NPTEiexMy1WTtDCR16TGedchzYgfyrxNZa0uIapVf5dw_bjug8LindCEl3VGFrkdaxu0nLz9m0L_e8Dw_HTWa0cB6Xvzu59HFkr0Z-5CLzmLchO"/>
+</div>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-sage border-2 border-white rounded-full"></div>
+</div>
+<div>
+<h1 class="text-2xl font-bold tracking-tight text-primary">Le Petit Bistro</h1>
+<p class="text-slate-400 text-sm font-medium">Performance Insights</p>
+</div>
+</div>
+<button class="w-11 h-11 rounded-2xl soft-glass flex items-center justify-center text-primary/80">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="px-6 space-y-6">
+<div class="grid grid-cols-2 gap-4">
+<div class="soft-glass p-6 rounded-[24px]">
+<div class="flex justify-between items-start mb-4">
+<span class="text-[32px]">🤩</span>
+<div class="px-2 py-1 bg-sage/10 rounded-lg">
+<span class="text-sage text-[10px] font-bold">+2.4%</span>
+</div>
+</div>
+<p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Overall Rating</p>
+<h2 class="text-3xl font-bold text-primary">4.8</h2>
+</div>
+<div class="soft-glass p-6 rounded-[24px]">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">query_stats</span>
+</div>
+<div class="px-2 py-1 bg-slate-100 rounded-lg">
+<span class="text-slate-400 text-[10px] font-bold">30d</span>
+</div>
+</div>
+<p class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Volume</p>
+<h2 class="text-3xl font-bold text-primary">1,284</h2>
+</div>
+</div>
+<section class="soft-glass p-7 rounded-[24px]">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h3 class="text-lg font-bold text-primary">Rating Trend</h3>
+<p class="text-slate-400 text-xs">Past 7 days performance</p>
+</div>
+<div class="text-right">
+<span class="text-sage font-bold">↑ 4.9</span>
+<p class="text-[10px] text-slate-300 font-bold uppercase">Peak</p>
+</div>
+</div>
+<div class="h-32 w-full relative mt-4">
+<svg class="w-full h-full" viewBox="0 0 400 100">
+<line class="text-slate-100" stroke="currentColor" stroke-width="0.5" x1="0" x2="400" y1="20" y2="20"></line>
+<line class="text-slate-100" stroke="currentColor" stroke-width="0.5" x1="0" x2="400" y1="50" y2="50"></line>
+<line class="text-slate-100" stroke="currentColor" stroke-width="0.5" x1="0" x2="400" y1="80" y2="80"></line>
+<path class="line-chart-path" d="M 0,80 C 40,75 60,30 100,40 C 140,50 160,10 200,20 C 240,30 260,60 300,55 C 340,50 360,15 400,10" fill="none" stroke="#A3D9A5" stroke-linecap="round" stroke-width="3"></path>
+<path class="opacity-10" d="M 0,80 C 40,75 60,30 100,40 C 140,50 160,10 200,20 C 240,30 260,60 300,55 C 340,50 360,15 400,10 V 100 H 0 Z" fill="url(#gradient)"></path>
+<defs>
+<linearGradient id="gradient" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:#A3D9A5;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#A3D9A5;stop-opacity:0"></stop>
+</linearGradient>
+</defs>
+</svg>
+<div class="flex justify-between mt-2 text-[10px] font-bold text-slate-300 uppercase tracking-tighter">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+<span>Sat</span>
+<span>Sun</span>
+</div>
+</div>
+</section>
+<section class="soft-glass p-7 rounded-[24px]">
+<h3 class="text-lg font-bold text-primary mb-6">Satisfaction Distribution</h3>
+<div class="space-y-5">
+<div class="flex items-center gap-4">
+<span class="text-lg w-6">🤩</span>
+<div class="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden">
+<div class="h-full bg-sage rounded-full w-[65%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 w-8">65%</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg w-6">😊</span>
+<div class="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden">
+<div class="h-full bg-[#B3E5FC] rounded-full w-[20%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 w-8">20%</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg w-6">😐</span>
+<div class="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden">
+<div class="h-full bg-accent rounded-full w-[10%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 w-8">10%</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg w-6">☹️</span>
+<div class="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden">
+<div class="h-full bg-[#FFE0B2] rounded-full w-[3%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 w-8">3%</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-lg w-6">😡</span>
+<div class="flex-1 h-3 bg-slate-50 rounded-full overflow-hidden">
+<div class="h-full bg-secondary/40 rounded-full w-[2%]"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 w-8">2%</span>
+</div>
+</div>
+</section>
+<section class="relative">
+<div class="absolute inset-0 bg-secondary/5 blur-xl rounded-[24px]"></div>
+<div class="relative bg-white/40 border border-secondary/10 p-6 rounded-[24px] flex gap-4 items-start">
+<div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined font-bold">priority_high</span>
+</div>
+<div>
+<h3 class="font-bold text-secondary text-sm">Critical Attention Required</h3>
+<p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Wait times peaked at <span class="font-bold text-secondary">52 min</span> during lunch rush. Consider staffing adjustments for tomorrow.
+                    </p>
+</div>
+</div>
+</section>
+</main>
+<nav class="fixed bottom-0 left-0 right-0 soft-glass border-t border-white/50 px-8 pt-4 pb-8 flex justify-between items-center rounded-t-[32px] z-50 ios-safe-bottom">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">grid_view</span>
+<span class="text-[10px] font-bold">Overview</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-300">
+<span class="material-symbols-outlined">forum</span>
+<span class="text-[10px] font-bold">Reviews</span>
+</button>
+<div class="relative -mt-12">
+<div class="absolute -inset-2 bg-primary/10 rounded-[28px] blur-lg"></div>
+<button class="relative w-16 h-16 bg-primary rounded-[24px] flex items-center justify-center text-white shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<button class="flex flex-col items-center gap-1 text-slate-300">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-bold">Analytics</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-300">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</button>
+</nav>
+<button class="fixed right-6 bottom-32 w-12 h-12 soft-glass rounded-full shadow-lg flex items-center justify-center z-40" onclick="document.documentElement.classList.toggle('dark')">
+<span class="material-symbols-outlined text-primary dark:text-accent">contrast</span>
+</button>
+
+</body></html>

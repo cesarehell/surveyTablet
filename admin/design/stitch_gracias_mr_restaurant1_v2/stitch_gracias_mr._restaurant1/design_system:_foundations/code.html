@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Design System: Foundations - Survey Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#F9F8F3", // Japandi Warm White
+                        "background-dark": "#101622",
+                        "soft-beige": "#F2EFE9",
+                        "muted-sage": "#8BA88E",
+                        "coral": "#FF7F6A",
+                        "light-gray": "#E5E5E5",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .kawaii-shadow {
+            box-shadow: 0 8px 30px rgba(17, 82, 212, 0.05);
+        }
+        .grid-bg {
+            background-size: 8px 8px;
+            background-image: radial-gradient(circle, #e5e7eb 0.5px, transparent 0.5px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen pb-24">
+<!-- Header / Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between px-4 py-4">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+</button>
+<div class="text-center">
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight">Foundations</h1>
+<p class="text-[10px] uppercase tracking-widest font-bold text-primary/60">Variant 1 of 2</p>
+</div>
+<div class="flex items-center justify-end w-10">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 pt-6 space-y-10">
+<!-- Introduction -->
+<section class="space-y-2">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">restaurant</span>
+                Mr. Restaurant Identity
+            </div>
+<h2 class="text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">Survey Admin Visual Language</h2>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed">
+                A harmonious blend of Japandi minimalism and Kawaii tech warmth. Defined by soft curves, organic tones, and structural clarity.
+            </p>
+</section>
+<!-- Neutral Palette Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold tracking-tight">Neutral Palette</h3>
+<span class="text-xs font-medium text-slate-400 uppercase tracking-widest">Base Layer</span>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 kawaii-shadow">
+<div class="size-16 rounded-xl bg-background-light border border-slate-200" data-alt="Warm white color swatch"></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Warm White</p>
+<p class="text-sm font-mono text-slate-500 uppercase">#F9F8F3</p>
+<p class="text-xs text-slate-400 mt-1">Surface: Primary Background</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 kawaii-shadow">
+<div class="size-16 rounded-xl bg-soft-beige border border-slate-200" data-alt="Soft beige color swatch"></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Soft Beige</p>
+<p class="text-sm font-mono text-slate-500 uppercase">#F2EFE9</p>
+<p class="text-xs text-slate-400 mt-1">Surface: Secondary Elevation</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 kawaii-shadow">
+<div class="size-16 rounded-xl bg-light-gray border border-slate-200" data-alt="Light gray color swatch"></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Light Gray</p>
+<p class="text-sm font-mono text-slate-500 uppercase">#E5E5E5</p>
+<p class="text-xs text-slate-400 mt-1">Border: Subtle Dividers</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Brand Accents Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold tracking-tight">Brand Accents</h3>
+<span class="text-xs font-medium text-slate-400 uppercase tracking-widest">Interaction</span>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<div class="flex flex-col gap-2">
+<div class="aspect-square rounded-2xl bg-primary flex items-center justify-center text-white" data-alt="Deep blue brand accent">
+<span class="material-symbols-outlined scale-125">check_circle</span>
+</div>
+<div class="px-1">
+<p class="text-xs font-bold truncate">Deep Blue</p>
+<p class="text-[10px] font-mono text-slate-500">#1152D4</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="aspect-square rounded-2xl bg-coral flex items-center justify-center text-white" data-alt="Coral brand accent">
+<span class="material-symbols-outlined scale-125">favorite</span>
+</div>
+<div class="px-1">
+<p class="text-xs font-bold truncate">Coral</p>
+<p class="text-[10px] font-mono text-slate-500">#FF7F6A</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="aspect-square rounded-2xl bg-muted-sage flex items-center justify-center text-white" data-alt="Muted sage brand accent">
+<span class="material-symbols-outlined scale-125">nature</span>
+</div>
+<div class="px-1">
+<p class="text-xs font-bold truncate">Sage Green</p>
+<p class="text-[10px] font-mono text-slate-500">#8BA88E</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Typography Section -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold tracking-tight">Typography</h3>
+<span class="text-xs font-medium text-slate-400 uppercase tracking-widest">Inter Sans</span>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-8 kawaii-shadow">
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-primary uppercase tracking-widest">Display Large / 32pt / Bold</p>
+<p class="text-3xl font-bold text-slate-900 dark:text-white">Survey Results</p>
+</div>
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-primary uppercase tracking-widest">Headline Medium / 20pt / SemiBold</p>
+<p class="text-xl font-semibold text-slate-800 dark:text-slate-100">Customer Feedback 2024</p>
+</div>
+<div class="space-y-1">
+<p class="text-[10px] font-bold text-primary uppercase tracking-widest">Body Small / 14pt / Regular</p>
+<p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        This text demonstrates the standard reading weight for long-form survey content and descriptions within the admin interface.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Layout & Tokens -->
+<section class="space-y-4 pb-12">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold tracking-tight">Layout Tokens</h3>
+<span class="text-xs font-medium text-slate-400 uppercase tracking-widest">Grid &amp; Radius</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl kawaii-shadow space-y-3">
+<div class="h-24 w-full rounded-lg grid-bg border border-slate-200 flex items-center justify-center" data-alt="Grid pattern visualization">
+<div class="size-8 bg-primary/20 border border-primary/40 flex items-center justify-center">
+<span class="text-[8px] font-bold text-primary">8px</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-bold">8dp Grid</p>
+<p class="text-xs text-slate-500">Incremental spacing logic</p>
+</div>
+</div>
+<div class="p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl kawaii-shadow space-y-3">
+<div class="h-24 w-full flex items-end justify-center gap-1" data-alt="Corner radius examples">
+<div class="w-1/2 h-16 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+<span class="text-[8px] font-bold">16px</span>
+</div>
+<div class="w-1/2 h-20 bg-primary/10 rounded-2xl border border-primary/20 flex items-center justify-center">
+<span class="text-[8px] font-bold text-primary">24px</span>
+</div>
+</div>
+<div>
+<p class="text-sm font-bold">Soft Radius</p>
+<p class="text-xs text-slate-500">16dp &amp; 24dp standards</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Navigation / Bottom Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-slate-200 dark:border-slate-800 px-6 py-3 z-50">
+<div class="flex items-center justify-around max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-[1]">palette</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Foundations</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Components</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">data_object</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Tokens</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase tracking-wider">Setup</span>
+</a>
+</div>
+</nav>
+</body></html>

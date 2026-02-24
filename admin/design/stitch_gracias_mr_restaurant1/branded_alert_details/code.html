@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Mr. Restaurant - Alert Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;family=Outfit:wght@400;600;700&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FF4433", // Red from Mr. Restaurant logo hair
+                        secondary: "#98D09E", // Sage green from bow tie
+                        brandDark: "#115272", // Navy from mascot eyes/mustache
+                        brandLight: "#F9EFCA", // Cream from mascot skin
+                        "background-light": "#FDFCF7", // Soft Japandi cream/white
+                        "background-dark": "#121212",
+                    },
+                    fontFamily: {
+                        display: ["Outfit", "sans-serif"],
+                        sans: ["Quicksand", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "24px",
+                    },
+                },
+            },
+        };
+    </script>
+<style>
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .kawaii-shadow {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-sans text-brandDark dark:text-gray-200 min-h-screen">
+<div class="h-12 w-full"></div>
+<header class="px-6 py-4 flex items-center justify-between sticky top-0 bg-background-light/80 dark:bg-background-dark/80 ios-blur z-20">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-gray-800 kawaii-shadow border border-gray-100 dark:border-gray-700">
+<span class="material-symbols-rounded">arrow_back_ios_new</span>
+</button>
+<h1 class="font-display font-bold text-lg">Detalles de Alerta</h1>
+<div class="w-10 h-10 flex items-center justify-center">
+<img alt="Mr. Restaurant Mascot" class="w-8 h-8 opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgcIFh268RhZ_Up1wZ27Rz_uhbjtjCPXeeb_BNYjMPoLFnRH0WQEAUJP49IDXZHLxyL93xe3H6o5saESg9bftwZwMG-eBDVZ7xHGWwtJU0UgbcphkyPEN2rpbn3S8IL7rBG80yxQyaneg03K1UhW2ThYxE5i6bJ5-7NQQFznni08pQ7Mtd_URhNw5e8eaEzJVfWRQVfcBtEuUDkQlh6Z_HTJ_6_zJvqGyehQALd-h1AbIBcxI0Cs4bGDH6YQ4lHvJL70OkEyafQHC8"/>
+</div>
+</header>
+<main class="px-6 pb-24">
+<div class="mt-4 bg-primary rounded-[32px] p-6 text-white relative overflow-hidden shadow-lg shadow-primary/20">
+<img alt="Watermark" class="absolute -right-6 -bottom-6 w-32 h-32 opacity-10 pointer-events-none grayscale invert" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBmmboom5THn3WE8lYvFvtqCM5i1eA2ONpF18SxztTAxxqs4j00VouB22HijMOEhQ1x1sAYUJSO0vjk0ucHaJtLAR4ZGKm3CFZKt4hkThRT5H1I6ST_uXcHbCR6VUnFl8hk4uUSQfTGY_gUdP480g3UiBFfSi1i9KVrjOlmFqCt2mOjy5Rc-Mvc74vZD-KIw_6A3Sriw6zz6urIYB18n4-SCN9kgentYOTg5SJPcsjynVMve4exm1o_7SwJ7nCorm1ixsrYbCeIX5KZ"/>
+<div class="relative z-10 flex items-start gap-4">
+<div class="bg-white/20 p-3 rounded-2xl">
+<span class="material-symbols-rounded text-3xl">priority_high</span>
+</div>
+<div>
+<h2 class="font-display font-bold text-xl leading-tight">Crítica: Insatisfacción de Cliente</h2>
+<p class="text-white/80 text-sm mt-1">Recibida hace 4 minutos • Mesa 12</p>
+</div>
+</div>
+</div>
+<div class="mt-6 space-y-4">
+<div class="bg-white dark:bg-gray-900 p-6 rounded-[32px] kawaii-shadow border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4 mb-6">
+<div class="text-5xl bg-brandLight dark:bg-gray-800 w-20 h-20 flex items-center justify-center rounded-full">
+                        😞
+                    </div>
+<div>
+<p class="text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Valoración</p>
+<p class="text-2xl font-display font-bold text-primary">1 / 5 Estrellas</p>
+</div>
+</div>
+<div class="bg-background-light dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-50 dark:border-gray-700/50">
+<p class="text-lg leading-relaxed italic text-gray-700 dark:text-gray-300">
+                        "La comida tardó más de 45 minutos en llegar y estaba fría. El mesero fue amable pero la cocina parece estar saturada hoy."
+                    </p>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-900 rounded-[32px] p-2 kawaii-shadow border border-gray-100 dark:border-gray-800">
+<div class="flex items-center p-4 border-b border-gray-50 dark:border-gray-800">
+<div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 mr-4">
+<span class="material-symbols-rounded">person</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-gray-400 font-medium">CLIENTE</p>
+<p class="font-semibold">Carlos M. Sanabria</p>
+</div>
+</div>
+<div class="flex items-center p-4 border-b border-gray-50 dark:border-gray-800">
+<div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/30 flex items-center justify-center text-orange-500 mr-4">
+<span class="material-symbols-rounded">restaurant</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-gray-400 font-medium">UBICACIÓN / MESA</p>
+<p class="font-semibold">Salón Principal - Mesa 12</p>
+</div>
+</div>
+<div class="flex items-center p-4">
+<div class="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center text-secondary mr-4">
+<span class="material-symbols-rounded">schedule</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-gray-400 font-medium">HORA DEL PEDIDO</p>
+<p class="font-semibold">14:22 PM</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light dark:via-background-dark to-transparent z-30">
+<div class="flex gap-3 max-w-md mx-auto">
+<button class="flex-1 bg-secondary hover:bg-opacity-90 transition-all text-brandDark font-display font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-secondary/20">
+<span class="material-symbols-rounded">check_circle</span>
+                Resolver
+            </button>
+<button class="w-16 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 py-4 rounded-2xl flex items-center justify-center text-gray-400 hover:text-primary transition-colors kawaii-shadow">
+<span class="material-symbols-rounded">flag</span>
+</button>
+</div>
+<div class="h-4"></div>
+</div>
+<div class="fixed top-1/2 -right-12 -translate-y-1/2 opacity-[0.03] dark:opacity-[0.05] pointer-events-none select-none">
+<img alt="Decorative Pattern" class="w-64 grayscale" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvrAuFCQG0EboEKIBqYbnrWX7_7wlbrzbyu-8wl17SxtKjM3ICBdQrqo5ps2jIifjZlALW1RXGAvwtDOimBDf9L4vHx75nWwIIvWXrUhzu-j_EbtmOgcwGEP3GIK9ALYlEOYL0CXCE-CJpuNg-syWG2CgfW8EulgoGDgwZBat5s-4BHzO0ohroui-i1sfLJtB-28I3kD36D0q3tqGWZUfZD8k_D29zbxLrY0B50mgnV30TIGwD7eMTQDwdb0qXEhL7GDFArS-v6MlP"/>
+</div>
+
+</body></html>
