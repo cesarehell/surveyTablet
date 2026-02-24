@@ -3,9 +3,11 @@ package com.mr.restaurant.survey.core.location.api
 import com.mr.restaurant.survey.core.location.dto.CreateLocationRequest
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.location.dto.PairingCodeDto
+import com.mr.restaurant.survey.core.location.dto.UpdateLocationRequest
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -17,6 +19,12 @@ interface LocationApi {
 
 	@POST("/v1/locations")
 	suspend fun create(@Body req: CreateLocationRequest): LocationDto
+
+	@PATCH("/v1/locations/{id}")
+	suspend fun update(@Path("id") id: String, @Body req: UpdateLocationRequest): LocationDto
+
+	@DELETE("/v1/locations/{id}")
+	suspend fun delete(@Path("id") id: String): Map<String, String>
 
 	@GET("/v1/locations/{id}/pairing-codes")
 	suspend fun pairingCodes(@Path("id") id: String): List<PairingCodeDto>

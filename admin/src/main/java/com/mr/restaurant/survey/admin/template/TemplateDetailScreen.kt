@@ -63,8 +63,8 @@ fun TemplateDetailRoute(
 			when (event) {
 				is AdminUiEvent.ShowError -> snackbarHostState.showSnackbar(event.message)
 				is AdminUiEvent.ShowSuccess -> {
-					snackbarHostState.showSnackbar(event.message)
 					resetInputNonce++
+					snackbarHostState.showSnackbar(event.message)
 				}
 
 				is AdminUiEvent.NavigateToTemplateDetail -> Unit
@@ -326,6 +326,7 @@ fun TemplateDetailScreen(
 			onDismiss = { editQuestionId = null },
 			onSave = { order, type, text, isRequired ->
 				onUpdateQuestion(question.id, order, type, text, isRequired)
+				editQuestionId = null
 			}
 		)
 	}

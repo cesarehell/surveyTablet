@@ -51,6 +51,14 @@ import com.mr.restaurant.survey.core.template.dto.TemplateFullDto
 import com.mr.restaurant.survey.core.threshold.dto.ThresholdRuleDto
 
 private val ThresholdTypes = listOf("NEGATIVE", "LT", "LE", "EQ")
+private fun thresholdTypeLabel(type: String): String = when (type.uppercase()) {
+	"NEGATIVE" -> "Negativa (<= 2)"
+	"LT" -> "Menor que"
+	"LE" -> "Menor o igual"
+	"EQ" -> "Igual a"
+	"GE" -> "Mayor o igual"
+	else -> type
+}
 
 @Composable
 fun TenantThresholdsScreen(
@@ -95,6 +103,8 @@ fun TenantThresholdsScreen(
 	val selectedTemplate = st.templates.firstOrNull { it.id == st.selectedTemplateId }
 	val questions = st.templateFull?.questions.orEmpty()
 	val selectedQuestion = questions.firstOrNull { it.id == selectedQuestionId }
+	val selectedQuestionIsYesNo = selectedQuestion?.type == "YESNO"
+	val availableThresholdTypes = if (selectedQuestionIsYesNo) listOf("EQ") else ThresholdTypes
 
 	Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
 		Column(
@@ -254,25 +264,56 @@ fun TenantThresholdsScreen(
 
 					Text("Tipo", style = MaterialTheme.typography.labelMedium)
 					LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-						items(ThresholdTypes) { type ->
+						items(availableThresholdTypes) { type ->
 							FilterChip(
 								selected = newType == type,
 								onClick = { newType = type },
-								label = { Text(type) }
+								label = { Text(thresholdTypeLabel(type)) }
 							)
 						}
 					}
-
-					OutlinedTextField(
-						value = newValue,
-						onValueChange = {
-							newValue = it
-							createDialogError = null
-						},
-						label = { Text("Valor") },
-						singleLine = true,
-						keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+					Text(
+						"Tipo de comparación de la regla.",
+						style = MaterialTheme.typography.bodySmall
 					)
+					if (selectedQuestionIsYesNo) {
+						Text("Respuesta", style = MaterialTheme.typography.labelMedium)
+						Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+							FilterChip(
+								selected = newValue == "1",
+								onClick = {
+									newType = "EQ"
+									newValue = "1"
+									createDialogError = null
+								},
+								label = { Text("Sí") }
+							)
+							FilterChip(
+								selected = newValue == "0",
+								onClick = {
+									newType = "EQ"
+									newValue = "0"
+									createDialogError = null
+								},
+								label = { Text("No") }
+							)
+						}
+						Text(
+							"Para preguntas Sí/No se evalúa igualdad exacta.",
+							style = MaterialTheme.typography.bodySmall
+						)
+					} else {
+						OutlinedTextField(
+							value = newValue,
+							onValueChange = {
+								newValue = it
+								createDialogError = null
+							},
+							label = { Text("Valor") },
+							singleLine = true,
+							keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+						)
+					}
 
 					OutlinedTextField(
 						value = newCooldown,
@@ -311,12 +352,16 @@ fun TenantThresholdsScreen(
 							questions.forEach { q ->
 								DropdownMenuItem(
 									text = { Text(q.text, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-									onClick = {
-										selectedQuestionId = q.id
-										questionsExpanded = false
+								onClick = {
+									selectedQuestionId = q.id
+									if (q.type == "YESNO") {
+										newType = "EQ"
+										if (newValue != "0" && newValue != "1") newValue = "1"
 									}
-								)
-							}
+									questionsExpanded = false
+								}
+							)
+						}
 						}
 					}
 				}
@@ -369,7 +414,7 @@ private fun ThresholdRuleCard(
 			) {
 				Column(Modifier.weight(1f)) {
 					Text(
-						"${rule.type ?: "-"} · ${rule.value}",
+						"${thresholdTypeLabel(rule.type ?: "-")} · ${rule.value}",
 						style = MaterialTheme.typography.titleMedium,
 						fontWeight = FontWeight.SemiBold,
 						maxLines = 2,

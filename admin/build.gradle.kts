@@ -58,6 +58,7 @@ dependencies {
 
 	implementation("com.google.android.material:material:1.12.0")
 	implementation("androidx.appcompat:appcompat:1.7.0")
+	implementation("com.google.zxing:core:3.5.3")
 	implementation("com.google.dagger:hilt-android:2.51.1")
 	ksp("com.google.dagger:hilt-android-compiler:2.51.1")
 

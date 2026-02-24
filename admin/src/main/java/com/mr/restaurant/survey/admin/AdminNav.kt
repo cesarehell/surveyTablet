@@ -17,11 +17,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mr.restaurant.survey.admin.alert.TenantAlertsScreen
+import com.mr.restaurant.survey.admin.device.TenantDevicesScreen
 import com.mr.restaurant.survey.admin.location.TenantLocationsScreen
 import com.mr.restaurant.survey.admin.metrics.TenantMetricsScreen
 import com.mr.restaurant.survey.admin.navigation.Routes
 import com.mr.restaurant.survey.admin.navigation.requireTemplateId
 import com.mr.restaurant.survey.admin.navigation.requireTenantId
+import com.mr.restaurant.survey.admin.push.AdminPushDebugRoute
 import com.mr.restaurant.survey.admin.push.AdminPushViewModel
 import com.mr.restaurant.survey.admin.threshold.TenantThresholdsScreen
 import com.mr.restaurant.survey.admin.template.CreateTemplateRoute
@@ -61,9 +63,26 @@ fun AdminNavHost() {
 				onBack = { nav.popBackStack() },
 				onMetrics = { nav.navigate(Routes.tenantMetrics(tenantId)) },
 				onLocations = { nav.navigate(Routes.tenantLocations(tenantId)) },
+				onDevices = { nav.navigate(Routes.tenantDevices(tenantId)) },
 				onTemplates = { nav.navigate(Routes.tenantTemplates(tenantId)) },
 				onThresholds = { nav.navigate(Routes.tenantThresholds(tenantId)) },
-				onAlerts = { nav.navigate(Routes.tenantAlerts(tenantId)) }
+				onAlerts = { nav.navigate(Routes.tenantAlerts(tenantId)) },
+				onPushDebug = { nav.navigate(Routes.tenantPushDebug(tenantId)) }
+			)
+		}
+
+		composable(
+			route = Routes.TENANT_DEVICES,
+			arguments = listOf(Routes.tenantIdNavArg)
+		) { backStack ->
+			val tenantId = backStack.arguments?.let { runCatching { it.requireTenantId() }.getOrNull() }
+			if (tenantId.isNullOrBlank()) {
+				MissingRouteArgScreen(onBack = { nav.popBackStack() })
+				return@composable
+			}
+			TenantDevicesScreen(
+				tenantId = tenantId,
+				onBack = { nav.popBackStack() }
 			)
 		}
 
@@ -175,6 +194,21 @@ fun AdminNavHost() {
 				return@composable
 			}
 			TenantAlertsScreen(
+				tenantId = tenantId,
+				onBack = { nav.popBackStack() }
+			)
+		}
+
+		composable(
+			route = Routes.TENANT_PUSH_DEBUG,
+			arguments = listOf(Routes.tenantIdNavArg)
+		) { backStack ->
+			val tenantId = backStack.arguments?.let { runCatching { it.requireTenantId() }.getOrNull() }
+			if (tenantId.isNullOrBlank()) {
+				MissingRouteArgScreen(onBack = { nav.popBackStack() })
+				return@composable
+			}
+			AdminPushDebugRoute(
 				tenantId = tenantId,
 				onBack = { nav.popBackStack() }
 			)

@@ -29,9 +29,13 @@ class AdminPushRegistrar @Inject constructor(
 		registerCurrentTokenForTenant(tenantId)
 	}
 
+	fun currentTenantId(): String? = prefs.getTenantId()
+
 	fun onNewToken(token: String) {
+		prefs.saveLastToken(token)
 		val tenantId = prefs.getTenantId() ?: run {
 			Log.i(TAG, "Token FCM recibido, pero no hay tenant seleccionado aún")
+			prefs.saveLastRegistrationResult(topic = null, pushSubscribed = null, error = "Token recibido sin tenant seleccionado")
 			return
 		}
 		registerToken(tenantId, token)
@@ -46,19 +50,28 @@ class AdminPushRegistrar @Inject constructor(
 		val hasFirebase = runCatching { FirebaseApp.getApps(context).isNotEmpty() }.getOrDefault(false)
 		if (!hasFirebase) {
 			Log.w(TAG, "Firebase no inicializado en admin. Falta google-services.json compatible con el package del app")
+			prefs.saveLastRegistrationResult(topic = null, pushSubscribed = null, error = "Firebase no inicializado")
 			return
 		}
 		val topic = topicForTenant(tenantId)
 		FirebaseMessaging.getInstance().subscribeToTopic(topic)
-			.addOnSuccessListener { Log.i(TAG, "Suscrito localmente a topic $topic") }
-			.addOnFailureListener { err -> Log.w(TAG, "No se pudo suscribir localmente a topic $topic", err) }
+			.addOnSuccessListener {
+				Log.i(TAG, "Suscrito localmente a topic $topic")
+				prefs.saveLastLocalTopic(topic, error = null)
+			}
+			.addOnFailureListener { err ->
+				Log.w(TAG, "No se pudo suscribir localmente a topic $topic", err)
+				prefs.saveLastLocalTopic(topic, error = err.message ?: "Error suscribiendo topic local")
+			}
 
 		FirebaseMessaging.getInstance().token
 			.addOnSuccessListener { token ->
+				prefs.saveLastToken(token)
 				registerToken(tenantId, token)
 			}
 			.addOnFailureListener { err ->
 				Log.e(TAG, "No se pudo obtener token FCM para tenant=$tenantId", err)
+				prefs.saveLastRegistrationResult(topic = topic, pushSubscribed = null, error = err.message ?: "No se pudo obtener token FCM")
 			}
 	}
 
@@ -74,9 +87,19 @@ class AdminPushRegistrar @Inject constructor(
 			)
 			when (val res = safeCall { deviceApi.register(req) }) {
 				is ApiResult.Ok -> {
+					prefs.saveLastRegistrationResult(
+						topic = res.value.topic,
+						pushSubscribed = res.value.pushSubscribed,
+						error = null
+					)
 					Log.i(TAG, "FCM admin registrado tenant=$tenantId topic=${res.value.topic} subscribed=${res.value.pushSubscribed}")
 				}
 				is ApiResult.Err -> {
+					prefs.saveLastRegistrationResult(
+						topic = topicForTenant(tenantId),
+						pushSubscribed = false,
+						error = res.message
+					)
 					Log.e(TAG, "Error registrando token admin tenant=$tenantId: ${res.message}")
 				}
 			}

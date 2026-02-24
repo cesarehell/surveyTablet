@@ -7,6 +7,7 @@ import com.mr.restaurant.survey.core.location.api.LocationApi
 import com.mr.restaurant.survey.core.location.dto.CreateLocationRequest
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.location.dto.PairingCodeDto
+import com.mr.restaurant.survey.core.location.dto.UpdateLocationRequest
 import com.mr.restaurant.survey.core.net.ApiResult
 import com.mr.restaurant.survey.core.net.safeCall
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -108,6 +109,68 @@ class LocationsViewModel @Inject constructor(
 					pairingCodesLoading = false,
 					pairingCodesError = res.message
 				)
+			}
+		}
+	}
+
+	fun updateLocation(
+		locationId: String,
+		name: String,
+		city: String?,
+		branchName: String?,
+		code: String?,
+		active: Boolean
+	) = viewModelScope.launch {
+		if (name.isBlank()) {
+			_events.tryEmit(AdminUiEvent.ShowError("El nombre es obligatorio"))
+			return@launch
+		}
+		_state.update { it.copy(loading = true) }
+		when (val res = safeCall {
+			api.update(
+				id = locationId,
+				req = UpdateLocationRequest(
+					name = name,
+					city = city,
+					branchName = branchName,
+					code = code,
+					active = active
+				)
+			)
+		}) {
+			is ApiResult.Ok -> {
+				_state.update { state ->
+					state.copy(
+						loading = false,
+						locations = state.locations.map { if (it.id == locationId) res.value else it }
+					)
+				}
+				_events.tryEmit(AdminUiEvent.ShowSuccess("Location actualizada"))
+			}
+			is ApiResult.Err -> {
+				_state.update { it.copy(loading = false) }
+				_events.tryEmit(AdminUiEvent.ShowError(res.message))
+			}
+		}
+	}
+
+	fun softDeleteLocation(locationId: String) = viewModelScope.launch {
+		_state.update { it.copy(loading = true) }
+		when (val res = safeCall { api.delete(locationId) }) {
+			is ApiResult.Ok -> {
+				_state.update { state ->
+					state.copy(
+						loading = false,
+						locations = state.locations.map { loc ->
+							if (loc.id == locationId) loc.copy(active = false) else loc
+						}
+					)
+				}
+				_events.tryEmit(AdminUiEvent.ShowSuccess("Location desactivada"))
+			}
+			is ApiResult.Err -> {
+				_state.update { it.copy(loading = false) }
+				_events.tryEmit(AdminUiEvent.ShowError(res.message))
 			}
 		}
 	}

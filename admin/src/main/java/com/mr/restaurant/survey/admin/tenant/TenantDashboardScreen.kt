@@ -2,6 +2,9 @@ package com.mr.restaurant.survey.admin.tenant
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,10 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,17 +32,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 fun TenantDashboardScreen(
 	tenantId: String,
 	onBack: () -> Unit,
 	onMetrics: () -> Unit,
 	onLocations: () -> Unit,
+	onDevices: () -> Unit,
 	onTemplates: () -> Unit,
 	onThresholds: () -> Unit,
 	onAlerts: () -> Unit,
+	onPushDebug: () -> Unit,
 ) {
 	val actions = listOf(
 		DashAction("Locations", "Sucursales y códigos", onLocations),
+		DashAction("Tablets", "Asignación de dispositivos", onDevices),
 		DashAction("Encuestas", "Templates y preguntas", onTemplates),
 		DashAction("Métricas", "Resumen y tendencias", onMetrics),
 		DashAction("Thresholds", "Reglas operativas", onThresholds),
@@ -63,19 +68,39 @@ fun TenantDashboardScreen(
 		) {
 			item {
 				Spacer(Modifier.height(8.dp))
-				Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-					InsightCard(
-						title = "Acciones",
-						value = actions.size.toString(),
-						subtitle = "Módulos disponibles",
-						modifier = Modifier.weight(1f)
-					)
-					InsightCard(
-						title = "Estado",
-						value = "Live",
-						subtitle = "Admin conectado",
-						modifier = Modifier.weight(1f)
-					)
+				BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+					val compact = maxWidth < 420.dp
+					if (compact) {
+						Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+							InsightCard(
+								title = "Acciones",
+								value = actions.size.toString(),
+								subtitle = "Módulos disponibles",
+								modifier = Modifier.fillMaxWidth()
+							)
+							InsightCard(
+								title = "Estado",
+								value = "Live",
+								subtitle = "Admin conectado",
+								modifier = Modifier.fillMaxWidth()
+							)
+						}
+					} else {
+						Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+							InsightCard(
+								title = "Acciones",
+								value = actions.size.toString(),
+								subtitle = "Módulos disponibles",
+								modifier = Modifier.weight(1f)
+							)
+							InsightCard(
+								title = "Estado",
+								value = "Live",
+								subtitle = "Admin conectado",
+								modifier = Modifier.weight(1f)
+							)
+						}
+					}
 				}
 			}
 
@@ -88,45 +113,30 @@ fun TenantDashboardScreen(
 				)
 			}
 
-				item {
-					LazyVerticalGrid(
-					columns = GridCells.Fixed(2),
-					modifier = Modifier.height(320.dp),
-					horizontalArrangement = Arrangement.spacedBy(10.dp),
-					verticalArrangement = Arrangement.spacedBy(10.dp),
-					userScrollEnabled = false
+			item {
+				BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+					val cardWidth = when {
+						maxWidth >= 900.dp -> (maxWidth - 20.dp) / 3
+						maxWidth >= 560.dp -> (maxWidth - 10.dp) / 2
+						else -> maxWidth
+					}
+					FlowRow(
+						horizontalArrangement = Arrangement.spacedBy(10.dp),
+						verticalArrangement = Arrangement.spacedBy(10.dp),
+						maxItemsInEachRow = if (maxWidth >= 900.dp) 3 else if (maxWidth >= 560.dp) 2 else 1
 					) {
-						gridItems(actions.take(4)) { action ->
-							ActionCard(action)
+						actions.take(4).forEach { action ->
+							ActionCard(action, modifier = Modifier.width(cardWidth))
 						}
 					}
 				}
+			}
 
 			items(actions.drop(4)) { action ->
 				ActionWideCard(action)
 			}
 
-			item {
-				Card(
-					colors = CardDefaults.cardColors(
-						containerColor = MaterialTheme.colorScheme.secondaryContainer
-					),
-					modifier = Modifier.fillMaxWidth()
-				) {
-					Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-						Text(
-							"Nota técnica",
-							fontWeight = FontWeight.Bold,
-							color = MaterialTheme.colorScheme.secondary
-						)
-						Text(
-							"Editar/borrar Locations aún depende de endpoints backend dedicados. Hoy el flujo soportado es create/list/get + pairing codes + active template.",
-							style = MaterialTheme.typography.bodySmall
-						)
-					}
-				}
-				Spacer(Modifier.height(16.dp))
-			}
+			item { Spacer(Modifier.height(16.dp)) }
 		}
 	}
 }
@@ -212,10 +222,9 @@ private fun InsightCard(
 }
 
 @Composable
-private fun ActionCard(action: DashAction) {
+private fun ActionCard(action: DashAction, modifier: Modifier = Modifier) {
 	Card(
-		modifier = Modifier
-			.fillMaxWidth()
+		modifier = modifier
 			.clickable(onClick = action.onClick),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
 		elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -223,6 +232,7 @@ private fun ActionCard(action: DashAction) {
 		Column(
 			modifier = Modifier
 				.fillMaxSize()
+				.height(148.dp)
 				.padding(12.dp),
 			verticalArrangement = Arrangement.SpaceBetween
 		) {

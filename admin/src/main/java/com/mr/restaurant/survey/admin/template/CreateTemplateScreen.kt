@@ -142,7 +142,7 @@ private fun ScopeSelector(
 	onChange: (TemplateScope) -> Unit
 ) {
 	Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-		Text("Scope", style = MaterialTheme.typography.titleSmall)
+		Text("Alcance", style = MaterialTheme.typography.titleSmall)
 
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			RadioButton(
@@ -150,7 +150,7 @@ private fun ScopeSelector(
 				onClick = { onChange(TemplateScope.LOCATION) }
 			)
 			Text(
-				"LOCATION (por sucursal)",
+				"Sucursal",
 				modifier = Modifier
 					.clickable { onChange(TemplateScope.LOCATION) }
 					.padding(end = 16.dp)
@@ -161,7 +161,7 @@ private fun ScopeSelector(
 				onClick = { onChange(TemplateScope.TENANT) }
 			)
 			Text(
-				"TENANT (franquicia)",
+				"Franquicia",
 				modifier = Modifier.clickable { onChange(TemplateScope.TENANT) }
 			)
 		}
