@@ -1,5 +1,7 @@
 package com.mr.restaurant.survey.core.net
 
+import okhttp3.logging.HttpLoggingInterceptor
+
 object ApiConfig {
 
 	@Volatile
@@ -7,4 +9,7 @@ object ApiConfig {
 		set(value) {
 			field = value.trim().let { if (it.endsWith("/")) it else "$it/" }
 		}
+
+	@Volatile
+	var httpLogLevel: HttpLoggingInterceptor.Level = HttpLoggingInterceptor.Level.NONE
 }

@@ -3,8 +3,10 @@ package com.mr.restaurant.survey.fcm
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -16,13 +18,12 @@ import com.mr.restaurant.survey.BuildConfig
 import com.mr.restaurant.survey.R
 import com.mr.restaurant.survey.data.SurveyRepository
 import com.mr.restaurant.survey.net.Network
+import com.mr.restaurant.survey.ui.TabletProvisioningPrefs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppFcmService : FirebaseMessagingService() {
-
-	private val scope = CoroutineScope(Dispatchers.IO)
 
 	override fun onCreate() {
 		super.onCreate()
@@ -31,24 +32,7 @@ class AppFcmService : FirebaseMessagingService() {
 
 	override fun onNewToken(token: String) {
 		Log.i("FCM", "Nuevo token: $token")
-		FirebaseMessaging.getInstance().subscribeToTopic("tenant-mr-restaurant")
-			.addOnSuccessListener { Log.i("FCM", "Suscrito a topic tenant-mr-restaurant") }
-			.addOnFailureListener { Log.w("FCM", "No se pudo suscribir a topic", it) }
-		register(token)
-	}
-
-	private fun register(token: String) {
-		val api = Network.createApi(BuildConfig.DEFAULT_BASE_URL)
-		val repo = SurveyRepository(api)
-		scope.launch {
-			runCatching {
-				repo.registerDevice(BuildConfig.DEFAULT_TENANT, token, owner = "Tablet")
-			}.onSuccess {
-				Log.i("FCM", "Token registrado en backend")
-			}.onFailure {
-				Log.e("FCM", "Error registrando token", it)
-			}
-		}
+		registerOnly(applicationContext, token)
 	}
 
 	override fun onMessageReceived(message: RemoteMessage) {
@@ -92,13 +76,138 @@ class AppFcmService : FirebaseMessagingService() {
 	}
 
 	companion object {
-		fun fetchToken() {
-			FirebaseMessaging.getInstance().token.addOnSuccessListener {
-				Log.i(
-					"FCM",
-					"FCM TOKEN: $it"
-				)
+		private val scope = CoroutineScope(Dispatchers.IO)
+		private fun topicForTenant(tenantId: String) = "tenant-$tenantId"
+		private const val PREFS_NAME = "fcm_registration_cache"
+		private const val KEY_LAST_SUCCESS_SIGNATURE = "last_success_signature"
+		private const val KEY_LAST_SUCCESS_AT = "last_success_at"
+		private const val KEY_LAST_ATTEMPT_SIGNATURE = "last_attempt_signature"
+		private const val KEY_LAST_ATTEMPT_AT = "last_attempt_at"
+		private const val SUCCESS_TTL_MS = 24L * 60L * 60L * 1000L
+		private const val FAILURE_RETRY_MS = 10L * 60L * 1000L
+		@Volatile private var inFlight = false
+
+		fun syncRegistration(context: Context) {
+			FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+				Log.i("FCM", "FCM TOKEN: $token")
+				registerOnly(context.applicationContext, token)
 			}.addOnFailureListener { Log.e("FCM", "No se pudo obtener token", it) }
+		}
+
+		fun fetchToken(context: Context) {
+			syncRegistration(context)
+		}
+
+		private fun registerOnly(context: Context, token: String) {
+			val cfg = TabletProvisioningPrefs(context).load()
+			if (cfg == null) {
+				Log.w("FCM", "Tablet sin provisioning. Se omite registro de token hasta configurar tenant/location")
+				FirebaseMessaging.getInstance().unsubscribeFromTopic("tenant-mr-restaurant")
+					.addOnSuccessListener { Log.i("FCM", "Desuscrito de topic legacy tenant-mr-restaurant") }
+					.addOnFailureListener {
+						Log.w(
+							"FCM",
+							"No se pudo desuscribir de topic legacy tenant-mr-restaurant",
+							it
+						)
+					}
+				return
+			}
+			val topic = topicForTenant(cfg.tenantId)
+			FirebaseMessaging.getInstance().unsubscribeFromTopic(topic)
+				.addOnSuccessListener {
+					Log.i("FCM", "Desuscrito de topic $topic (tablet no recibe alertas de admin)")
+				}
+				.addOnFailureListener {
+					Log.w("FCM", "No se pudo desuscribir de topic $topic", it)
+				}
+			FirebaseMessaging.getInstance().unsubscribeFromTopic("tenant-mr-restaurant")
+				.addOnSuccessListener { Log.i("FCM", "Desuscrito de topic legacy tenant-mr-restaurant") }
+				.addOnFailureListener {
+					Log.w(
+						"FCM",
+						"No se pudo desuscribir de topic legacy tenant-mr-restaurant",
+						it
+					)
+				}
+			register(
+				context = context,
+				tenantId = cfg.tenantId,
+				locationId = cfg.locationId,
+				token = token
+			)
+		}
+
+		private fun register(context: Context, tenantId: String, locationId: String, token: String) {
+			val api = Network.createApi(BuildConfig.DEFAULT_BASE_URL)
+			val repo = SurveyRepository(api)
+			val deviceId = Settings.Secure.getString(
+				context.contentResolver,
+				Settings.Secure.ANDROID_ID
+			).orEmpty()
+			val owner = if (deviceId.isBlank()) "Tablet" else "Tablet:$deviceId"
+			val signature = "$tenantId|$locationId|$owner|$token"
+			if (!shouldAttemptRegistration(context, signature)) {
+				Log.i("FCM", "Registro de token omitido (ya vigente): tenant=$tenantId locationId=$locationId")
+				return
+			}
+			if (inFlight) {
+				Log.d("FCM", "Registro de token ya en progreso, se omite duplicado")
+				return
+			}
+			inFlight = true
+			scope.launch {
+				markAttempt(context, signature)
+				runCatching {
+					repo.registerDevice(
+						tenantId = tenantId,
+						token = token,
+						owner = owner,
+						role = "MANAGER",
+						locationId = locationId
+					)
+				}.onSuccess {
+					markSuccess(context, signature)
+					Log.i("FCM", "Token registrado en backend tenant=$tenantId locationId=$locationId owner=$owner")
+				}.onFailure {
+					Log.e("FCM", "Error registrando token", it)
+				}.also {
+					inFlight = false
+				}
+			}
+		}
+
+		private fun shouldAttemptRegistration(context: Context, signature: String): Boolean {
+			val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			val now = System.currentTimeMillis()
+			val lastSuccessSignature = prefs.getString(KEY_LAST_SUCCESS_SIGNATURE, null)
+			val lastSuccessAt = prefs.getLong(KEY_LAST_SUCCESS_AT, 0L)
+			if (lastSuccessSignature == signature && now - lastSuccessAt < SUCCESS_TTL_MS) {
+				return false
+			}
+
+			val lastAttemptSignature = prefs.getString(KEY_LAST_ATTEMPT_SIGNATURE, null)
+			val lastAttemptAt = prefs.getLong(KEY_LAST_ATTEMPT_AT, 0L)
+			if (lastAttemptSignature == signature && now - lastAttemptAt < FAILURE_RETRY_MS) {
+				return false
+			}
+			return true
+		}
+
+		private fun markAttempt(context: Context, signature: String) {
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.edit()
+				.putString(KEY_LAST_ATTEMPT_SIGNATURE, signature)
+				.putLong(KEY_LAST_ATTEMPT_AT, System.currentTimeMillis())
+				.apply()
+		}
+
+		private fun markSuccess(context: Context, signature: String) {
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.edit()
+				.putString(KEY_LAST_SUCCESS_SIGNATURE, signature)
+				.putLong(KEY_LAST_SUCCESS_AT, System.currentTimeMillis())
+				.apply()
 		}
 	}
 }

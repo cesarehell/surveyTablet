@@ -7,7 +7,10 @@ import com.mr.restaurant.survey.core.template.dto.PageDto
 import com.mr.restaurant.survey.core.template.dto.SurveyTemplateDto
 import com.mr.restaurant.survey.core.template.dto.TemplateFullDto
 import com.mr.restaurant.survey.core.template.dto.TemplateStatus
+import com.mr.restaurant.survey.core.template.dto.UpdateOptionReq
+import com.mr.restaurant.survey.core.template.dto.UpdateQuestionRequest
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -45,10 +48,33 @@ interface TemplateApi {
 		@Body req: AddQuestionRequest
 	): Map<String, String>
 
+	@PATCH("/v1/questions/{id}")
+	suspend fun updateQuestion(
+		@Path("id") questionId: String,
+		@Body req: UpdateQuestionRequest
+	): Map<String, String>
+
+	@DELETE("/v1/questions/{id}")
+	suspend fun deleteQuestion(
+		@Path("id") questionId: String
+	): Map<String, String>
+
 	@POST("/v1/questions/{id}/options")
 	suspend fun addOptions(
 		@Path("id") questionId: String,
 		@Body opts: List<CreateOptionReq>
 	): List<Map<String, String>>
-}
 
+	@PATCH("/v1/questions/{qid}/options/{oid}")
+	suspend fun updateOption(
+		@Path("qid") questionId: String,
+		@Path("oid") optionId: String,
+		@Body req: UpdateOptionReq
+	): TemplateFullDto.OptionDto
+
+	@DELETE("/v1/questions/{qid}/options/{oid}")
+	suspend fun deleteOption(
+		@Path("qid") questionId: String,
+		@Path("oid") optionId: String
+	): Map<String, String>
+}

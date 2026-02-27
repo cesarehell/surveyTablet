@@ -1,10 +1,15 @@
 package com.mr.restaurant.survey.admin.di
 
+import com.mr.restaurant.survey.core.alert.api.AlertApi
+import com.mr.restaurant.survey.core.coupon.api.CouponRuleApi
+import com.mr.restaurant.survey.core.device.api.DeviceApi
 import com.mr.restaurant.survey.core.location.api.LocationApi
+import com.mr.restaurant.survey.core.metrics.api.MetricsApi
 import com.mr.restaurant.survey.core.net.ApiFactory
 import com.mr.restaurant.survey.core.template.api.TemplateApi
 import com.mr.restaurant.survey.core.tenant.TenantRepository
 import com.mr.restaurant.survey.core.tenant.api.TenantApi
+import com.mr.restaurant.survey.core.threshold.api.ThresholdApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,6 +38,31 @@ object AdminModule {
 	@Singleton
 	fun provideTemplateApi(retrofit: Retrofit): TemplateApi =
 		retrofit.create(TemplateApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideThresholdApi(retrofit: Retrofit): ThresholdApi =
+		retrofit.create(ThresholdApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideAlertApi(retrofit: Retrofit): AlertApi =
+		retrofit.create(AlertApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideDeviceApi(retrofit: Retrofit): DeviceApi =
+		retrofit.create(DeviceApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideCouponRuleApi(retrofit: Retrofit): CouponRuleApi =
+		retrofit.create(CouponRuleApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideMetricsApi(retrofit: Retrofit): MetricsApi =
+		retrofit.create(MetricsApi::class.java)
 
 	@Provides
 	@Singleton
