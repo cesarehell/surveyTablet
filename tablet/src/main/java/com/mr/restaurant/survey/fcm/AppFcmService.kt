@@ -78,6 +78,14 @@ class AppFcmService : FirebaseMessagingService() {
 	companion object {
 		private val scope = CoroutineScope(Dispatchers.IO)
 		private fun topicForTenant(tenantId: String) = "tenant-$tenantId"
+		private const val PREFS_NAME = "fcm_registration_cache"
+		private const val KEY_LAST_SUCCESS_SIGNATURE = "last_success_signature"
+		private const val KEY_LAST_SUCCESS_AT = "last_success_at"
+		private const val KEY_LAST_ATTEMPT_SIGNATURE = "last_attempt_signature"
+		private const val KEY_LAST_ATTEMPT_AT = "last_attempt_at"
+		private const val SUCCESS_TTL_MS = 24L * 60L * 60L * 1000L
+		private const val FAILURE_RETRY_MS = 10L * 60L * 1000L
+		@Volatile private var inFlight = false
 
 		fun syncRegistration(context: Context) {
 			FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
@@ -96,7 +104,13 @@ class AppFcmService : FirebaseMessagingService() {
 				Log.w("FCM", "Tablet sin provisioning. Se omite registro de token hasta configurar tenant/location")
 				FirebaseMessaging.getInstance().unsubscribeFromTopic("tenant-mr-restaurant")
 					.addOnSuccessListener { Log.i("FCM", "Desuscrito de topic legacy tenant-mr-restaurant") }
-					.addOnFailureListener { Log.w("FCM", "No se pudo desuscribir de topic legacy tenant-mr-restaurant", it) }
+					.addOnFailureListener {
+						Log.w(
+							"FCM",
+							"No se pudo desuscribir de topic legacy tenant-mr-restaurant",
+							it
+						)
+					}
 				return
 			}
 			val topic = topicForTenant(cfg.tenantId)
@@ -109,7 +123,13 @@ class AppFcmService : FirebaseMessagingService() {
 				}
 			FirebaseMessaging.getInstance().unsubscribeFromTopic("tenant-mr-restaurant")
 				.addOnSuccessListener { Log.i("FCM", "Desuscrito de topic legacy tenant-mr-restaurant") }
-				.addOnFailureListener { Log.w("FCM", "No se pudo desuscribir de topic legacy tenant-mr-restaurant", it) }
+				.addOnFailureListener {
+					Log.w(
+						"FCM",
+						"No se pudo desuscribir de topic legacy tenant-mr-restaurant",
+						it
+					)
+				}
 			register(
 				context = context,
 				tenantId = cfg.tenantId,
@@ -126,7 +146,18 @@ class AppFcmService : FirebaseMessagingService() {
 				Settings.Secure.ANDROID_ID
 			).orEmpty()
 			val owner = if (deviceId.isBlank()) "Tablet" else "Tablet:$deviceId"
+			val signature = "$tenantId|$locationId|$owner|$token"
+			if (!shouldAttemptRegistration(context, signature)) {
+				Log.i("FCM", "Registro de token omitido (ya vigente): tenant=$tenantId locationId=$locationId")
+				return
+			}
+			if (inFlight) {
+				Log.d("FCM", "Registro de token ya en progreso, se omite duplicado")
+				return
+			}
+			inFlight = true
 			scope.launch {
+				markAttempt(context, signature)
 				runCatching {
 					repo.registerDevice(
 						tenantId = tenantId,
@@ -136,11 +167,47 @@ class AppFcmService : FirebaseMessagingService() {
 						locationId = locationId
 					)
 				}.onSuccess {
+					markSuccess(context, signature)
 					Log.i("FCM", "Token registrado en backend tenant=$tenantId locationId=$locationId owner=$owner")
 				}.onFailure {
 					Log.e("FCM", "Error registrando token", it)
+				}.also {
+					inFlight = false
 				}
 			}
+		}
+
+		private fun shouldAttemptRegistration(context: Context, signature: String): Boolean {
+			val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+			val now = System.currentTimeMillis()
+			val lastSuccessSignature = prefs.getString(KEY_LAST_SUCCESS_SIGNATURE, null)
+			val lastSuccessAt = prefs.getLong(KEY_LAST_SUCCESS_AT, 0L)
+			if (lastSuccessSignature == signature && now - lastSuccessAt < SUCCESS_TTL_MS) {
+				return false
+			}
+
+			val lastAttemptSignature = prefs.getString(KEY_LAST_ATTEMPT_SIGNATURE, null)
+			val lastAttemptAt = prefs.getLong(KEY_LAST_ATTEMPT_AT, 0L)
+			if (lastAttemptSignature == signature && now - lastAttemptAt < FAILURE_RETRY_MS) {
+				return false
+			}
+			return true
+		}
+
+		private fun markAttempt(context: Context, signature: String) {
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.edit()
+				.putString(KEY_LAST_ATTEMPT_SIGNATURE, signature)
+				.putLong(KEY_LAST_ATTEMPT_AT, System.currentTimeMillis())
+				.apply()
+		}
+
+		private fun markSuccess(context: Context, signature: String) {
+			context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.edit()
+				.putString(KEY_LAST_SUCCESS_SIGNATURE, signature)
+				.putLong(KEY_LAST_SUCCESS_AT, System.currentTimeMillis())
+				.apply()
 		}
 	}
 }

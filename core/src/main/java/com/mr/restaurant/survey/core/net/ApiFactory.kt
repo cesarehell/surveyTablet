@@ -16,7 +16,7 @@ object ApiFactory {
 
 	private val client: OkHttpClient by lazy {
 		val logging = HttpLoggingInterceptor().apply {
-			level = HttpLoggingInterceptor.Level.BODY
+			level = ApiConfig.httpLogLevel
 		}
 		OkHttpClient.Builder()
 			.addInterceptor(logging)

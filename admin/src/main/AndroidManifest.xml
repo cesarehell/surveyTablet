@@ -19,7 +19,7 @@
                 android:value="admin_alerts" />
         <meta-data
                 android:name="com.google.firebase.messaging.default_notification_icon"
-                android:resource="@mipmap/ic_admin_launcher" />
+                android:resource="@drawable/ic_admin_notification" />
 
 
         <activity

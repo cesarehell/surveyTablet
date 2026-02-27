@@ -1,6 +1,7 @@
 package com.mr.restaurant.survey.admin.push
 
 import android.Manifest
+import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.mr.restaurant.survey.admin.ui.SimpleTopBar
@@ -38,12 +41,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import android.content.Context
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 
 data class AdminPushDebugUiState(
 	val loading: Boolean = false,
@@ -98,7 +98,7 @@ class AdminPushDebugViewModel @Inject constructor(
 	private fun refreshSnapshot() {
 		val postGranted = if (Build.VERSION.SDK_INT >= 33) {
 			ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
-				android.content.pm.PackageManager.PERMISSION_GRANTED
+					android.content.pm.PackageManager.PERMISSION_GRANTED
 		} else true
 
 		_state.update {

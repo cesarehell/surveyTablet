@@ -1,14 +1,15 @@
 package com.mr.restaurant.survey.admin.di
 
 import com.mr.restaurant.survey.core.alert.api.AlertApi
+import com.mr.restaurant.survey.core.coupon.api.CouponRuleApi
 import com.mr.restaurant.survey.core.device.api.DeviceApi
 import com.mr.restaurant.survey.core.location.api.LocationApi
 import com.mr.restaurant.survey.core.metrics.api.MetricsApi
 import com.mr.restaurant.survey.core.net.ApiFactory
-import com.mr.restaurant.survey.core.threshold.api.ThresholdApi
 import com.mr.restaurant.survey.core.template.api.TemplateApi
 import com.mr.restaurant.survey.core.tenant.TenantRepository
 import com.mr.restaurant.survey.core.tenant.api.TenantApi
+import com.mr.restaurant.survey.core.threshold.api.ThresholdApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -52,6 +53,11 @@ object AdminModule {
 	@Singleton
 	fun provideDeviceApi(retrofit: Retrofit): DeviceApi =
 		retrofit.create(DeviceApi::class.java)
+
+	@Provides
+	@Singleton
+	fun provideCouponRuleApi(retrofit: Retrofit): CouponRuleApi =
+		retrofit.create(CouponRuleApi::class.java)
 
 	@Provides
 	@Singleton

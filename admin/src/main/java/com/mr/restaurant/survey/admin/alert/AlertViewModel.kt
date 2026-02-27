@@ -49,6 +49,7 @@ class AlertViewModel @Inject constructor(
 				_state.update { st -> st.copy(alerts = st.alerts.filterNot { it.id == alertId }) }
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Alerta confirmada"))
 			}
+
 			is ApiResult.Err -> _events.tryEmit(AdminUiEvent.ShowError(res.message))
 		}
 		setAckBusy(alertId, false)

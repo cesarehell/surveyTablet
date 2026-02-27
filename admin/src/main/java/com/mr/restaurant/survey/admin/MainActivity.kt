@@ -4,8 +4,8 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.pm.PackageManager
-import android.os.Bundle
 import android.os.Build
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.mr.restaurant.survey.admin.push.AdminPushRegistrar
@@ -15,7 +15,8 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-	@Inject lateinit var pushRegistrar: AdminPushRegistrar
+	@Inject
+	lateinit var pushRegistrar: AdminPushRegistrar
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -45,7 +46,7 @@ class MainActivity : ComponentActivity() {
 	private fun requestNotifPermissionIfNeeded() {
 		if (Build.VERSION.SDK_INT >= 33) {
 			val granted = checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
-				PackageManager.PERMISSION_GRANTED
+					PackageManager.PERMISSION_GRANTED
 			if (!granted) {
 				requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1002)
 			}

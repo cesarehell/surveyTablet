@@ -3,6 +3,7 @@ package com.mr.restaurant.survey.admin.location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
+import com.mr.restaurant.survey.admin.validation.AdminInputValidator
 import com.mr.restaurant.survey.core.location.api.LocationApi
 import com.mr.restaurant.survey.core.location.dto.CreateLocationRequest
 import com.mr.restaurant.survey.core.location.dto.LocationDto
@@ -62,8 +63,17 @@ class LocationsViewModel @Inject constructor(
 		branchName: String?,
 		code: String?
 	) = viewModelScope.launch {
-		if (name.isBlank()) {
-			_events.tryEmit(AdminUiEvent.ShowError("El nombre es obligatorio"))
+		if (_state.value.loading) return@launch
+
+		val nameError = AdminInputValidator.validateName(name)
+		if (nameError != null) {
+			_events.tryEmit(AdminUiEvent.ShowError(nameError))
+			return@launch
+		}
+		val normalizedName = AdminInputValidator.normalizeName(name)
+		val duplicate = _state.value.locations.any { it.name.trim().equals(normalizedName, ignoreCase = true) }
+		if (duplicate) {
+			_events.tryEmit(AdminUiEvent.ShowError("Ya existe una sucursal con ese nombre"))
 			return@launch
 		}
 		_state.update { it.copy(loading = true) }
@@ -76,8 +86,8 @@ class LocationsViewModel @Inject constructor(
 						locations = it.locations + res.value
 					)
 				}
-				_events.tryEmit(AdminUiEvent.ShowSuccess("Location creada"))
 				_events.tryEmit(AdminUiEvent.CloseDialog)
+				_events.tryEmit(AdminUiEvent.ShowSuccess("Location creada"))
 			}
 
 			is ApiResult.Err -> {
@@ -121,16 +131,18 @@ class LocationsViewModel @Inject constructor(
 		code: String?,
 		active: Boolean
 	) = viewModelScope.launch {
-		if (name.isBlank()) {
-			_events.tryEmit(AdminUiEvent.ShowError("El nombre es obligatorio"))
+		val nameError = AdminInputValidator.validateName(name)
+		if (nameError != null) {
+			_events.tryEmit(AdminUiEvent.ShowError(nameError))
 			return@launch
 		}
+		val normalizedName = AdminInputValidator.normalizeName(name)
 		_state.update { it.copy(loading = true) }
 		when (val res = safeCall {
 			api.update(
 				id = locationId,
 				req = UpdateLocationRequest(
-					name = name,
+					name = normalizedName,
 					city = city,
 					branchName = branchName,
 					code = code,
@@ -147,6 +159,7 @@ class LocationsViewModel @Inject constructor(
 				}
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Location actualizada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -168,6 +181,7 @@ class LocationsViewModel @Inject constructor(
 				}
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Location desactivada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))

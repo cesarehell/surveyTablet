@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -31,9 +30,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mr.restaurant.survey.admin.R
 import com.mr.restaurant.survey.admin.ui.ErrorBanner
 import com.mr.restaurant.survey.admin.ui.SimpleTopBar
+import com.mr.restaurant.survey.admin.validation.AdminInputValidator
 import com.mr.restaurant.survey.core.location.dto.LocationDto
 import com.mr.restaurant.survey.core.template.dto.TemplateScope
 
@@ -51,9 +53,10 @@ fun CreateTemplateScreen(
 	var scope by rememberSaveable { mutableStateOf(TemplateScope.LOCATION) }
 	var selectedLocationId by rememberSaveable { mutableStateOf<String?>(null) }
 	var npsEnabled by rememberSaveable { mutableStateOf(true) }
+	val nameValidationError = AdminInputValidator.validateName(name)
 
 	// Validación UI (evita mandar requests inválidos)
-	val nameOk = name.isNotBlank()
+	val nameOk = nameValidationError == null
 	val locationOk = scope != TemplateScope.LOCATION || selectedLocationId != null
 	val canSubmit = nameOk && locationOk && !loading
 
@@ -61,7 +64,7 @@ fun CreateTemplateScreen(
 		snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
 		topBar = {
 			SimpleTopBar(
-				title = "Crear template",
+				title = stringResource(R.string.template_create_title),
 				subtitle = tenantId,
 				onBack = onBack
 			)
@@ -81,13 +84,15 @@ fun CreateTemplateScreen(
 
 			OutlinedTextField(
 				value = name,
-				onValueChange = { name = it },
+				onValueChange = { name = AdminInputValidator.sanitizeSingleLineInput(it) },
 				modifier = Modifier.fillMaxWidth(),
-				label = { Text("Nombre") },
+				label = { Text(stringResource(R.string.template_name)) },
 				singleLine = true,
 				isError = !nameOk && name.isNotEmpty(),
 				supportingText = {
-					if (!nameOk && name.isNotEmpty()) Text("El nombre es obligatorio")
+					if (!nameOk && name.isNotEmpty()) {
+						Text(nameValidationError ?: stringResource(R.string.template_name_required))
+					}
 				}
 			)
 
@@ -112,7 +117,17 @@ fun CreateTemplateScreen(
 				modifier = Modifier.fillMaxWidth(),
 				verticalAlignment = Alignment.CenterVertically
 			) {
-				Text("NPS habilitado", modifier = Modifier.weight(1f))
+				Column(
+					modifier = Modifier.weight(1f),
+					verticalArrangement = Arrangement.spacedBy(2.dp)
+				) {
+					Text(stringResource(R.string.template_nps_enabled))
+					Text(
+						stringResource(R.string.template_nps_enabled_help),
+						style = MaterialTheme.typography.bodySmall,
+						color = MaterialTheme.colorScheme.onSurfaceVariant
+					)
+				}
 				Switch(
 					checked = npsEnabled,
 					onCheckedChange = { npsEnabled = it }
@@ -130,7 +145,7 @@ fun CreateTemplateScreen(
 				enabled = canSubmit,
 				modifier = Modifier.fillMaxWidth()
 			) {
-				Text("Crear")
+				Text(stringResource(R.string.common_create))
 			}
 		}
 	}
@@ -142,7 +157,7 @@ private fun ScopeSelector(
 	onChange: (TemplateScope) -> Unit
 ) {
 	Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-		Text("Alcance", style = MaterialTheme.typography.titleSmall)
+		Text(stringResource(R.string.template_scope), style = MaterialTheme.typography.titleSmall)
 
 		Row(verticalAlignment = Alignment.CenterVertically) {
 			RadioButton(
@@ -150,7 +165,7 @@ private fun ScopeSelector(
 				onClick = { onChange(TemplateScope.LOCATION) }
 			)
 			Text(
-				"Sucursal",
+				stringResource(R.string.template_scope_location),
 				modifier = Modifier
 					.clickable { onChange(TemplateScope.LOCATION) }
 					.padding(end = 16.dp)
@@ -161,7 +176,7 @@ private fun ScopeSelector(
 				onClick = { onChange(TemplateScope.TENANT) }
 			)
 			Text(
-				"Franquicia",
+				stringResource(R.string.template_scope_tenant),
 				modifier = Modifier.clickable { onChange(TemplateScope.TENANT) }
 			)
 		}
@@ -177,11 +192,12 @@ private fun LocationSelector(
 ) {
 	var expanded by remember { mutableStateOf(false) }
 
-	val selectedName = locations.firstOrNull { it.id == selectedId }?.name ?: "Seleccionar sucursal"
+	val selectedName =
+		locations.firstOrNull { it.id == selectedId }?.name ?: stringResource(R.string.template_location_select)
 	val enabled = locations.isNotEmpty()
 
 	Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-		Text("Sucursal", style = MaterialTheme.typography.titleSmall)
+		Text(stringResource(R.string.template_location_label), style = MaterialTheme.typography.titleSmall)
 
 		Box(Modifier.fillMaxWidth()) {
 			Button(
@@ -217,13 +233,13 @@ private fun LocationSelector(
 
 		if (isError) {
 			Text(
-				"Debes seleccionar una sucursal activa",
+				stringResource(R.string.template_location_required),
 				style = MaterialTheme.typography.bodySmall,
 				color = MaterialTheme.colorScheme.error
 			)
 		} else if (!enabled) {
 			Text(
-				"No hay sucursales activas para este tenant",
+				stringResource(R.string.template_location_empty),
 				style = MaterialTheme.typography.bodySmall,
 				color = MaterialTheme.colorScheme.onSurfaceVariant
 			)

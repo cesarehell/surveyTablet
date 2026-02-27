@@ -3,10 +3,8 @@ package com.mr.restaurant.survey.admin.alert
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,15 +24,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.mr.restaurant.survey.admin.R
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
 import com.mr.restaurant.survey.admin.ui.EmptyState
 import com.mr.restaurant.survey.admin.ui.ErrorBanner
 import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
 import com.mr.restaurant.survey.admin.ui.SimpleTopBar
 import com.mr.restaurant.survey.core.alert.dto.AlertViewDto
+import com.mr.restaurant.survey.core.common.DisplayDateTimeFormatter
 
 @Composable
 fun TenantAlertsScreen(
@@ -64,7 +65,7 @@ fun TenantAlertsScreen(
 				.padding(padding)
 		) {
 			SimpleTopBar(
-				title = "Alertas",
+				title = stringResource(R.string.alerts_screen_title),
 				subtitle = tenantId,
 				onBack = onBack
 			)
@@ -80,10 +81,10 @@ fun TenantAlertsScreen(
 					horizontalArrangement = Arrangement.SpaceBetween
 				) {
 					Text(
-						"Alertas abiertas",
+						stringResource(R.string.alerts_open_title),
 						style = MaterialTheme.typography.titleLarge
 					)
-					Button(onClick = { vm.load(tenantId) }, enabled = !st.loading) { Text("Actualizar") }
+					Button(onClick = { vm.load(tenantId) }, enabled = !st.loading) { Text(stringResource(R.string.common_refresh)) }
 				}
 
 				if (st.loading) {
@@ -99,7 +100,7 @@ fun TenantAlertsScreen(
 					st.error?.let { ErrorBanner(it) }
 					if (!st.loading && st.alerts.isEmpty()) {
 						EmptyState(
-							message = "No hay alertas abiertas.",
+							message = stringResource(R.string.alerts_empty),
 							modifier = Modifier.weight(1f)
 						)
 					} else {
@@ -131,34 +132,48 @@ private fun AlertCard(
 	Card(Modifier.fillMaxWidth()) {
 		Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
 			Text(
-				alert.reason ?: "Sin motivo",
+				alert.reason ?: stringResource(R.string.alerts_reason_fallback),
 				style = MaterialTheme.typography.titleMedium,
 				fontWeight = FontWeight.SemiBold
 			)
 			Text(
-				"Severidad: ${alert.severity ?: "-"} · Estado: ${alert.state ?: "-"}",
+				stringResource(
+					R.string.alerts_severity_state,
+					alert.severity ?: "-",
+					alert.state ?: "-"
+				),
 				style = MaterialTheme.typography.bodySmall
 			)
 			val meta = listOfNotNull(
-				alert.tableNo?.let { "Mesa $it" },
-				alert.waiterName?.let { "Mesero $it" },
-				alert.ruleType?.let { "Regla $it" }
+				alert.tableNo?.let { stringResource(R.string.alerts_table_meta, it) },
+				alert.waiterName?.let { stringResource(R.string.alerts_waiter_meta, it) },
+				alert.ruleType?.let { stringResource(R.string.alerts_rule_meta, it) }
 			).joinToString(" · ")
 			if (meta.isNotBlank()) {
 				Text(meta, style = MaterialTheme.typography.bodySmall)
 			}
 			alert.startedAt?.let {
-				Text("Inicio encuesta: $it", style = MaterialTheme.typography.bodySmall)
+				Text(
+					stringResource(R.string.alerts_started_at, DisplayDateTimeFormatter.humanDateTime(it)),
+					style = MaterialTheme.typography.bodySmall
+				)
 			}
 			if (alert.escalated) {
-				Text("Escalada${alert.escalatedAt?.let { " · $it" } ?: ""}", color = MaterialTheme.colorScheme.error)
+				EscalationText(alert = alert)
 			}
 			HorizontalDivider()
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 				TextButton(onClick = onAck, enabled = !busy) {
-					Text(if (busy) "Confirmando…" else "ACK")
+					Text(if (busy) stringResource(R.string.alerts_ack_pending) else stringResource(R.string.alerts_ack))
 				}
 			}
 		}
 	}
+}
+
+@Composable
+private fun EscalationText(alert: AlertViewDto) {
+	val base = stringResource(R.string.alerts_escalated)
+	val suffix = alert.escalatedAt?.let { " · ${DisplayDateTimeFormatter.humanDateTime(it)}" }.orEmpty()
+	Text("$base$suffix", color = MaterialTheme.colorScheme.error)
 }

@@ -24,7 +24,6 @@ class SurveyRepository(
 	private val api: SurveyApi
 ) {
 	suspend fun pickCurrentTemplate(tenantId: String, locationId: String? = null): SurveyTemplateDto {
-		Log.d("tenantId", "id = $tenantId")
 		return if (!locationId.isNullOrBlank()) {
 			runCatching { api.getCurrentFull(tenantId, locationId) }
 				.getOrElse {
@@ -43,13 +42,7 @@ class SurveyRepository(
 
 	suspend fun loadTemplateWithOptions(templateId: String): SurveyTemplateDto {
 		val t = api.getTemplate(templateId)
-		val enriched = t.questions?.map { q ->
-			if (q.type == QuestionType.SINGLE || q.type == QuestionType.MULTI) {
-				val opts = api.getQuestionOptions(q.id)
-				q.copy(options = opts)
-			} else q
-		}
-		return t.copy(questions = enriched)
+		return enrichQuestionOptionsIfMissing(t)
 	}
 
 	suspend fun registerDevice(
@@ -103,9 +96,19 @@ class SurveyRepository(
 		api.sendAnswers(instanceId, listOf(AnswerDto(questionId = questionId, answer = json)))
 	}
 
+	suspend fun sendAnswersBatch(instanceId: String, answers: List<AnswerDto>) {
+		if (answers.isEmpty()) return
+		api.sendAnswers(instanceId, answers)
+	}
+
 	suspend fun refreshCurrentTemplate(tenantId: String, locationId: String? = null): SurveyTemplateDto {
-		val base = pickCurrentTemplate(tenantId, locationId)
-		return loadTemplateWithOptions(base.id)
+		val candidate = if (!locationId.isNullOrBlank()) {
+			runCatching { api.getCurrentFull(tenantId, locationId) }
+				.getOrElse { pickCurrentTemplate(tenantId, locationId) }
+		} else {
+			pickCurrentTemplate(tenantId, locationId)
+		}
+		return enrichQuestionOptionsIfMissing(candidate)
 	}
 
 	suspend fun submit(instanceId: String, email: String?, marketingOptIn: Boolean?): SubmitResponseDto {
@@ -125,4 +128,23 @@ class SurveyRepository(
 	suspend fun getTabletAssignment(tenantId: String, owner: String): DeviceViewDto? =
 		api.listDevices(tenantId = tenantId, deviceType = "TABLET")
 			.firstOrNull { it.owner?.trim() == owner.trim() }
+
+	private suspend fun enrichQuestionOptionsIfMissing(template: SurveyTemplateDto): SurveyTemplateDto {
+		val questions = template.questions.orEmpty()
+		val needsOptions = questions.any { q ->
+			(q.type == QuestionType.SINGLE || q.type == QuestionType.MULTI) &&
+				q.options.isNullOrEmpty()
+		}
+		if (!needsOptions) return template
+
+		val enriched = questions.map { q ->
+			if ((q.type == QuestionType.SINGLE || q.type == QuestionType.MULTI) && q.options.isNullOrEmpty()) {
+				val opts = api.getQuestionOptions(q.id)
+				q.copy(options = opts)
+			} else {
+				q
+			}
+		}
+		return template.copy(questions = enriched)
+	}
 }

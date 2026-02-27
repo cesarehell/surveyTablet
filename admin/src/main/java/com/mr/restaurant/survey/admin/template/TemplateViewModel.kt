@@ -3,6 +3,7 @@ package com.mr.restaurant.survey.admin.template
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
+import com.mr.restaurant.survey.admin.validation.AdminInputValidator
 import com.mr.restaurant.survey.core.net.ApiResult
 import com.mr.restaurant.survey.core.net.safeCall
 import com.mr.restaurant.survey.core.template.api.TemplateApi
@@ -74,12 +75,26 @@ class TemplateViewModel @Inject constructor(
 		locationId: String?,
 		npsEnabled: Boolean
 	) = viewModelScope.launch {
-		if (name.isBlank()) {
-			_events.tryEmit(AdminUiEvent.ShowError("El nombre es obligatorio"))
+		if (_state.value.loading) return@launch
+
+		val nameError = AdminInputValidator.validateName(name)
+		if (nameError != null) {
+			_events.tryEmit(AdminUiEvent.ShowError(nameError))
 			return@launch
 		}
 		if (scope == TemplateScope.LOCATION && locationId == null) {
 			_events.tryEmit(AdminUiEvent.ShowError("Debes seleccionar una sucursal"))
+			return@launch
+		}
+		val normalizedName = AdminInputValidator.normalizeName(name)
+		val duplicate = _state.value.templates.any { tpl ->
+			val tplScope = runCatching { TemplateScope.valueOf((tpl.scope ?: "").trim().uppercase()) }.getOrNull()
+			tpl.name.trim().equals(normalizedName, ignoreCase = true) &&
+				tplScope == scope &&
+				(scope != TemplateScope.LOCATION || tpl.location?.id == locationId)
+		}
+		if (duplicate) {
+			_events.tryEmit(AdminUiEvent.ShowError("Ya existe una encuesta con ese nombre y alcance"))
 			return@launch
 		}
 
@@ -87,7 +102,7 @@ class TemplateViewModel @Inject constructor(
 
 		val req = CreateTemplateRequest(
 			tenantId = tenantId,
-			name = name.trim(),
+			name = normalizedName,
 			scope = scope,
 			locationId = if (scope == TemplateScope.LOCATION) locationId else null,
 			npsEnabled = npsEnabled
@@ -96,8 +111,8 @@ class TemplateViewModel @Inject constructor(
 		when (val res = safeCall { api.create(req) }) {
 			is ApiResult.Ok -> {
 				applyTemplateLoadResult(tenantId)
-				_events.tryEmit(AdminUiEvent.ShowSuccess("Template creado"))
 				_events.tryEmit(AdminUiEvent.NavigateToTemplateDetail(res.value.id))
+				_events.tryEmit(AdminUiEvent.ShowSuccess("Template creado"))
 			}
 
 			is ApiResult.Err -> {

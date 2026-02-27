@@ -4,13 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -18,15 +15,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,29 +32,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.mr.restaurant.survey.admin.R
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
+import com.mr.restaurant.survey.admin.ui.DialogCancelButton
+import com.mr.restaurant.survey.admin.ui.DialogConfirmButton
 import com.mr.restaurant.survey.admin.ui.EmptyState
 import com.mr.restaurant.survey.admin.ui.ErrorBanner
 import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
+import com.mr.restaurant.survey.admin.ui.FilterChipWrap
 import com.mr.restaurant.survey.admin.ui.SimpleTopBar
-import com.mr.restaurant.survey.core.template.dto.TemplateFullDto
+import com.mr.restaurant.survey.admin.ui.adminThresholdTypeLabel
 import com.mr.restaurant.survey.core.threshold.dto.ThresholdRuleDto
+import kotlinx.coroutines.launch
 
 private val ThresholdTypes = listOf("NEGATIVE", "LT", "LE", "EQ")
-private fun thresholdTypeLabel(type: String): String = when (type.uppercase()) {
-	"NEGATIVE" -> "Negativa (<= 2)"
-	"LT" -> "Menor que"
-	"LE" -> "Menor o igual"
-	"EQ" -> "Igual a"
-	"GE" -> "Mayor o igual"
-	else -> type
-}
 
 @Composable
 fun TenantThresholdsScreen(
@@ -68,15 +63,24 @@ fun TenantThresholdsScreen(
 ) {
 	val st by vm.state.collectAsState()
 	val snackbarHostState = remember { SnackbarHostState() }
+	val uiScope = rememberCoroutineScope()
 
 	var templatesExpanded by remember { mutableStateOf(false) }
 	var showCreateDialog by remember { mutableStateOf(false) }
 	var createDialogError by remember { mutableStateOf<String?>(null) }
 	var newType by remember { mutableStateOf("NEGATIVE") }
-	var newValue by remember { mutableStateOf("0") }
+	var newValue by remember { mutableStateOf("2") }
 	var newCooldown by remember { mutableStateOf("10") }
 	var selectedQuestionId by remember { mutableStateOf<String?>(null) }
 	var questionsExpanded by remember { mutableStateOf(false) }
+
+	fun resetCreateRuleForm() {
+		createDialogError = null
+		newType = "NEGATIVE"
+		newValue = "2"
+		newCooldown = "10"
+		selectedQuestionId = null
+	}
 
 	LaunchedEffect(tenantId) { vm.load(tenantId) }
 	LaunchedEffect(Unit) {
@@ -84,17 +88,15 @@ fun TenantThresholdsScreen(
 			when (event) {
 				is AdminUiEvent.ShowError -> {
 					if (showCreateDialog) createDialogError = event.message
-					else snackbarHostState.showSnackbar(event.message)
+					else uiScope.launch { snackbarHostState.showSnackbar(event.message) }
 				}
-				is AdminUiEvent.ShowSuccess -> snackbarHostState.showSnackbar(event.message)
+
+				is AdminUiEvent.ShowSuccess -> uiScope.launch { snackbarHostState.showSnackbar(event.message) }
 				AdminUiEvent.CloseDialog -> {
 					showCreateDialog = false
-					createDialogError = null
-					newType = "NEGATIVE"
-					newValue = "0"
-					newCooldown = "10"
-					selectedQuestionId = null
+					resetCreateRuleForm()
 				}
+
 				is AdminUiEvent.NavigateToTemplateDetail -> Unit
 			}
 		}
@@ -102,9 +104,16 @@ fun TenantThresholdsScreen(
 
 	val selectedTemplate = st.templates.firstOrNull { it.id == st.selectedTemplateId }
 	val questions = st.templateFull?.questions.orEmpty()
-	val selectedQuestion = questions.firstOrNull { it.id == selectedQuestionId }
+	val thresholdQuestions = questions.filterNot { it.type == "TEXT" }
+	val selectedQuestion = thresholdQuestions.firstOrNull { it.id == selectedQuestionId }
 	val selectedQuestionIsYesNo = selectedQuestion?.type == "YESNO"
 	val availableThresholdTypes = if (selectedQuestionIsYesNo) listOf("EQ") else ThresholdTypes
+
+	LaunchedEffect(thresholdQuestions, selectedQuestionId) {
+		if (selectedQuestionId != null && thresholdQuestions.none { it.id == selectedQuestionId }) {
+			selectedQuestionId = null
+		}
+	}
 
 	Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
 		Column(
@@ -113,7 +122,7 @@ fun TenantThresholdsScreen(
 				.padding(padding)
 		) {
 			SimpleTopBar(
-				title = "Thresholds",
+				title = stringResource(R.string.thresholds_screen_title),
 				subtitle = tenantId,
 				onBack = onBack
 			)
@@ -162,7 +171,7 @@ fun TenantThresholdsScreen(
 
 					Button(
 						onClick = {
-							createDialogError = null
+							resetCreateRuleForm()
 							showCreateDialog = true
 						},
 						enabled = st.selectedTemplateId != null && !st.contextLoading && !st.creating,
@@ -218,7 +227,7 @@ fun TenantThresholdsScreen(
 
 				if (!st.loading && st.templates.isEmpty() && st.error == null) {
 					EmptyState(
-						message = "No hay templates para configurar thresholds.",
+						message = stringResource(R.string.thresholds_empty_templates),
 						modifier = Modifier.weight(1f)
 					)
 				} else if (!st.contextLoading && st.rules.isEmpty() && st.selectedTemplateId != null && st.contextError == null) {
@@ -230,10 +239,19 @@ fun TenantThresholdsScreen(
 					LazyColumn(
 						modifier = Modifier.weight(1f),
 						verticalArrangement = Arrangement.spacedBy(8.dp)
-					) {
-						items(st.rules, key = { it.id }) { rule ->
+						) {
+							items(st.rules, key = { it.id }) { rule ->
+								val resolvedLabel = rule.resolvedQuestionLabel?.trim().orEmpty()
+								val resolvedQuestionId = rule.resolvedQuestionId?.trim().orEmpty()
+								val questionLabel = when {
+									resolvedLabel.isNotBlank() -> resolvedLabel
+									resolvedQuestionId.isBlank() -> stringResource(R.string.rules_applies_all_questions)
+									else -> questions.firstOrNull { it.id.trim().equals(resolvedQuestionId, ignoreCase = true) }?.text
+										?: stringResource(R.string.rules_applies_unknown_question)
+								}
 							ThresholdRuleCard(
 								rule = rule,
+								questionLabel = questionLabel,
 								busy = rule.id in st.busyRuleIds,
 								onToggle = { vm.toggleRule(rule) },
 								onDelete = { vm.deleteRule(rule.id) }
@@ -249,57 +267,67 @@ fun TenantThresholdsScreen(
 		AlertDialog(
 			onDismissRequest = {
 				showCreateDialog = false
-				createDialogError = null
+				resetCreateRuleForm()
 			},
-			title = { Text("Nueva regla de threshold") },
+			title = { Text(stringResource(R.string.thresholds_new_rule_title)) },
 			text = {
 				Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 					createDialogError?.let { ErrorBanner(it) }
 					Text(
-						selectedTemplate?.name ?: "Sin template seleccionado",
+						selectedTemplate?.name ?: stringResource(R.string.thresholds_no_selected_survey),
 						style = MaterialTheme.typography.bodySmall,
 						maxLines = 2,
 						overflow = TextOverflow.Ellipsis
 					)
 
-					Text("Tipo", style = MaterialTheme.typography.labelMedium)
-					LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-						items(availableThresholdTypes) { type ->
-							FilterChip(
-								selected = newType == type,
-								onClick = { newType = type },
-								label = { Text(thresholdTypeLabel(type)) }
-							)
-						}
-					}
-					Text(
-						"Tipo de comparación de la regla.",
-						style = MaterialTheme.typography.bodySmall
-					)
+					Text(stringResource(R.string.thresholds_label_type), style = MaterialTheme.typography.labelMedium)
+						FilterChipWrap(
+							items = availableThresholdTypes,
+							selectedItem = newType,
+							onSelect = {
+								newType = it
+								if (it == "NEGATIVE") {
+									newValue = "2"
+								}
+								createDialogError = null
+							},
+							labelContent = { Text(adminThresholdTypeLabel(it)) }
+						)
+					Text(stringResource(R.string.thresholds_condition_help), style = MaterialTheme.typography.bodySmall)
 					if (selectedQuestionIsYesNo) {
-						Text("Respuesta", style = MaterialTheme.typography.labelMedium)
-						Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-							FilterChip(
-								selected = newValue == "1",
-								onClick = {
-									newType = "EQ"
-									newValue = "1"
-									createDialogError = null
-								},
-								label = { Text("Sí") }
-							)
-							FilterChip(
-								selected = newValue == "0",
-								onClick = {
-									newType = "EQ"
-									newValue = "0"
-									createDialogError = null
-								},
-								label = { Text("No") }
-							)
-						}
 						Text(
-							"Para preguntas Sí/No se evalúa igualdad exacta.",
+							stringResource(R.string.thresholds_label_answer),
+							style = MaterialTheme.typography.labelMedium
+						)
+						FilterChipWrap(
+							items = listOf("1", "0"),
+							selectedItem = newValue,
+							onSelect = { value ->
+								newType = "EQ"
+								newValue = value
+								createDialogError = null
+							},
+							labelContent = {
+								Text(
+									if (it == "1") stringResource(R.string.common_yes)
+									else stringResource(R.string.common_no)
+								)
+							}
+						)
+						Text(
+							stringResource(R.string.thresholds_yesno_help),
+							style = MaterialTheme.typography.bodySmall
+						)
+					} else if (newType == "NEGATIVE") {
+						OutlinedTextField(
+							value = "2",
+							onValueChange = {},
+							label = { Text("Valor") },
+							singleLine = true,
+							enabled = false
+						)
+						Text(
+							"Para alerta negativa se usa automáticamente <= 2.",
 							style = MaterialTheme.typography.bodySmall
 						)
 					} else {
@@ -330,7 +358,7 @@ fun TenantThresholdsScreen(
 						Button(
 							modifier = Modifier.fillMaxWidth(),
 							onClick = { questionsExpanded = true },
-							enabled = questions.isNotEmpty()
+							enabled = thresholdQuestions.isNotEmpty()
 						) {
 							Text(
 								text = selectedQuestion?.text ?: "Todas las preguntas",
@@ -349,25 +377,29 @@ fun TenantThresholdsScreen(
 									questionsExpanded = false
 								}
 							)
-							questions.forEach { q ->
+							thresholdQuestions.forEach { q ->
 								DropdownMenuItem(
 									text = { Text(q.text, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-								onClick = {
-									selectedQuestionId = q.id
-									if (q.type == "YESNO") {
-										newType = "EQ"
-										if (newValue != "0" && newValue != "1") newValue = "1"
+									onClick = {
+										selectedQuestionId = q.id
+										if (q.type == "YESNO") {
+											newType = "EQ"
+											if (newValue != "0" && newValue != "1") newValue = "1"
+										} else if (newType == "NEGATIVE") {
+											newValue = "2"
+										}
+										questionsExpanded = false
 									}
-									questionsExpanded = false
-								}
-							)
-						}
+								)
+							}
 						}
 					}
 				}
 			},
 			confirmButton = {
-				Button(
+				DialogConfirmButton(
+					text = if (st.creating) "Creando…" else "Crear",
+					enabled = !st.creating && st.selectedTemplateId != null,
 					onClick = {
 						createDialogError = null
 						vm.createRule(
@@ -378,16 +410,13 @@ fun TenantThresholdsScreen(
 							questionId = selectedQuestionId
 						)
 					},
-					enabled = !st.creating && st.selectedTemplateId != null
-				) {
-					Text(if (st.creating) "Creando…" else "Crear")
-				}
+				)
 			},
 			dismissButton = {
-				TextButton(onClick = {
+				DialogCancelButton(onClick = {
 					showCreateDialog = false
-					createDialogError = null
-				}) { Text("Cancelar") }
+					resetCreateRuleForm()
+				})
 			}
 		)
 	}
@@ -396,6 +425,7 @@ fun TenantThresholdsScreen(
 @Composable
 private fun ThresholdRuleCard(
 	rule: ThresholdRuleDto,
+	questionLabel: String,
 	busy: Boolean,
 	onToggle: () -> Unit,
 	onDelete: () -> Unit
@@ -414,7 +444,7 @@ private fun ThresholdRuleCard(
 			) {
 				Column(Modifier.weight(1f)) {
 					Text(
-						"${thresholdTypeLabel(rule.type ?: "-")} · ${rule.value}",
+						"${adminThresholdTypeLabel(rule.type ?: "-")} · ${rule.value}",
 						style = MaterialTheme.typography.titleMedium,
 						fontWeight = FontWeight.SemiBold,
 						maxLines = 2,
@@ -434,13 +464,19 @@ private fun ThresholdRuleCard(
 						modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
 						style = MaterialTheme.typography.labelSmall,
 						fontWeight = FontWeight.Bold,
-						color = if (rule.active) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+						color = if (rule.active) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface.copy(
+							alpha = 0.7f
+						)
 					)
 				}
 			}
 			Text(
-				"Regla operativa de alertas",
-				style = MaterialTheme.typography.bodySmall
+				stringResource(R.string.rules_applies_to, questionLabel),
+				style = MaterialTheme.typography.bodyMedium,
+				fontWeight = FontWeight.SemiBold,
+				color = MaterialTheme.colorScheme.primary,
+				maxLines = 2,
+				overflow = TextOverflow.Ellipsis
 			)
 			rule.location?.let {
 				Text(

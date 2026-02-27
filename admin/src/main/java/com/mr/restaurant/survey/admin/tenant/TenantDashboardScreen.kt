@@ -2,9 +2,6 @@ package com.mr.restaurant.survey.admin.tenant
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,9 +14,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -28,11 +28,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.mr.restaurant.survey.admin.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 fun TenantDashboardScreen(
 	tenantId: String,
 	onBack: () -> Unit,
@@ -41,161 +44,160 @@ fun TenantDashboardScreen(
 	onDevices: () -> Unit,
 	onTemplates: () -> Unit,
 	onThresholds: () -> Unit,
+	onCoupons: () -> Unit,
 	onAlerts: () -> Unit,
 	onPushDebug: () -> Unit,
 ) {
-	val actions = listOf(
-		DashAction("Locations", "Sucursales y códigos", onLocations),
-		DashAction("Tablets", "Asignación de dispositivos", onDevices),
-		DashAction("Encuestas", "Templates y preguntas", onTemplates),
-		DashAction("Métricas", "Resumen y tendencias", onMetrics),
-		DashAction("Thresholds", "Reglas operativas", onThresholds),
-		DashAction("Alertas", "Alertas abiertas", onAlerts)
-	)
-
-	Column(
+	LazyColumn(
 		modifier = Modifier
 			.fillMaxSize()
 			.background(MaterialTheme.colorScheme.background)
+			.padding(horizontal = 18.dp),
+		verticalArrangement = Arrangement.spacedBy(14.dp)
 	) {
-		DashboardHero(tenantId = tenantId, onBack = onBack)
-
-		LazyColumn(
-			modifier = Modifier
-				.fillMaxSize()
-				.padding(horizontal = 16.dp),
-			verticalArrangement = Arrangement.spacedBy(14.dp)
-		) {
-			item {
-				Spacer(Modifier.height(8.dp))
-				BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-					val compact = maxWidth < 420.dp
-					if (compact) {
-						Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-							InsightCard(
-								title = "Acciones",
-								value = actions.size.toString(),
-								subtitle = "Módulos disponibles",
-								modifier = Modifier.fillMaxWidth()
-							)
-							InsightCard(
-								title = "Estado",
-								value = "Live",
-								subtitle = "Admin conectado",
-								modifier = Modifier.fillMaxWidth()
-							)
-						}
-					} else {
-						Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-							InsightCard(
-								title = "Acciones",
-								value = actions.size.toString(),
-								subtitle = "Módulos disponibles",
-								modifier = Modifier.weight(1f)
-							)
-							InsightCard(
-								title = "Estado",
-								value = "Live",
-								subtitle = "Admin conectado",
-								modifier = Modifier.weight(1f)
-							)
-						}
-					}
-				}
+		item { Spacer(Modifier.height(8.dp)) }
+		item {
+			TextButton(onClick = onBack, modifier = Modifier.padding(start = 0.dp)) {
+				Text("← Franquicias")
 			}
-
-			item {
+		}
+		item {
+			Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
 				Text(
-					"Operación",
-					style = MaterialTheme.typography.titleLarge,
-					fontWeight = FontWeight.Bold,
-					modifier = Modifier.padding(top = 8.dp)
+					text = "Operación",
+					style = MaterialTheme.typography.headlineLarge,
+					fontWeight = FontWeight.ExtraBold
+				)
+				Text(
+					text = tenantId,
+					style = MaterialTheme.typography.titleMedium,
+					color = MaterialTheme.colorScheme.onSurfaceVariant,
+					maxLines = 1,
+					overflow = TextOverflow.Ellipsis
 				)
 			}
-
-			item {
-				BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-					val cardWidth = when {
-						maxWidth >= 900.dp -> (maxWidth - 20.dp) / 3
-						maxWidth >= 560.dp -> (maxWidth - 10.dp) / 2
-						else -> maxWidth
-					}
-					FlowRow(
-						horizontalArrangement = Arrangement.spacedBy(10.dp),
-						verticalArrangement = Arrangement.spacedBy(10.dp),
-						maxItemsInEachRow = if (maxWidth >= 900.dp) 3 else if (maxWidth >= 560.dp) 2 else 1
-					) {
-						actions.take(4).forEach { action ->
-							ActionCard(action, modifier = Modifier.width(cardWidth))
-						}
-					}
-				}
-			}
-
-			items(actions.drop(4)) { action ->
-				ActionWideCard(action)
-			}
-
-			item { Spacer(Modifier.height(16.dp)) }
 		}
+
+		item {
+			AlertBannerCard(onAlerts = onAlerts)
+		}
+
+		item {
+			PrimaryActionCard(
+				title = stringResource(R.string.dashboard_action_metrics),
+				subtitle = stringResource(R.string.dashboard_action_metrics_subtitle),
+				badge = "ME",
+				onClick = onMetrics
+			)
+		}
+
+		item {
+			Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+				SquareActionCard(
+					title = stringResource(R.string.dashboard_action_surveys),
+					subtitle = stringResource(R.string.dashboard_action_surveys_subtitle),
+					badge = "EN",
+					onClick = onTemplates,
+					modifier = Modifier.weight(1f)
+				)
+				SquareActionCard(
+					title = "Reglas",
+					subtitle = "Alertas automáticas",
+					badge = "RG",
+					onClick = onThresholds,
+					modifier = Modifier.weight(1f)
+				)
+			}
+		}
+
+		item {
+			Text(
+				text = "Configuración",
+				style = MaterialTheme.typography.titleMedium,
+				fontWeight = FontWeight.SemiBold,
+				color = MaterialTheme.colorScheme.onSurfaceVariant
+			)
+		}
+
+		item {
+			Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+				SettingRowCard(
+					title = stringResource(R.string.dashboard_action_coupons),
+					subtitle = stringResource(R.string.dashboard_action_coupons_subtitle),
+					badge = "CP",
+					buttonText = "Configurar",
+					onClick = onCoupons,
+					highlight = true
+				)
+				SettingRowCard(
+					title = "Sucursales",
+					subtitle = "Gestión de locales",
+					badge = "SU",
+					buttonText = "Configurar",
+					onClick = onLocations
+				)
+				SettingRowCard(
+					title = "Tablets",
+					subtitle = "Vinculación de equipos",
+					badge = "TB",
+					buttonText = "Configurar",
+					onClick = onDevices
+				)
+			}
+		}
+
+		if (false) {
+			item { TextButton(onClick = onPushDebug) { Text("Push Debug") } }
+		}
+
+		item { Spacer(Modifier.height(20.dp)) }
 	}
 }
 
 @Composable
-private fun DashboardHero(
-	tenantId: String,
-	onBack: () -> Unit
-) {
-	Column(
+private fun AlertBannerCard(onAlerts: () -> Unit) {
+	Card(
 		modifier = Modifier
 			.fillMaxWidth()
-			.background(MaterialTheme.colorScheme.primary)
-			.padding(16.dp),
-		verticalArrangement = Arrangement.spacedBy(12.dp)
+			.clickable(onClick = onAlerts),
+		shape = RoundedCornerShape(24.dp),
+		colors = CardDefaults.cardColors(
+			containerColor = Color(0xFFDDF3E6)
+		),
+		border = CardDefaults.outlinedCardBorder().copy(
+			brush = androidx.compose.ui.graphics.SolidColor(Color(0xFF9BE5B5))
+		)
 	) {
 		Row(
-			modifier = Modifier.fillMaxWidth(),
-			horizontalArrangement = Arrangement.SpaceBetween,
-			verticalAlignment = Alignment.CenterVertically
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(16.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(12.dp)
 		) {
-			TextButton(onClick = onBack) {
-				Text("← Tenants", color = MaterialTheme.colorScheme.onPrimary)
+			BadgeCircle(label = "!", strong = true)
+			Column(modifier = Modifier.weight(1f)) {
+				Text(
+					text = "Alertas activas",
+					style = MaterialTheme.typography.labelLarge,
+					fontWeight = FontWeight.Bold,
+					color = Color(0xFF10B95A)
+				)
+				Text(
+					text = "Revisar pendientes y atención",
+					style = MaterialTheme.typography.titleMedium,
+					fontWeight = FontWeight.SemiBold
+				)
 			}
 			Surface(
-				color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.12f),
-				shape = MaterialTheme.shapes.medium
+				shape = RoundedCornerShape(999.dp),
+				color = MaterialTheme.colorScheme.surface
 			) {
 				Text(
-					"Admin",
-					modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-					color = MaterialTheme.colorScheme.onPrimary,
-					style = MaterialTheme.typography.labelMedium,
-					fontWeight = FontWeight.Bold
-				)
-			}
-		}
-
-		Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-			Box(
-				modifier = Modifier
-					.size(56.dp)
-					.clip(MaterialTheme.shapes.large)
-					.background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.13f)),
-				contentAlignment = Alignment.Center
-			) {
-				Text("MR", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
-			}
-			Column {
-				Text(
-					tenantId,
-					color = MaterialTheme.colorScheme.onPrimary,
-					style = MaterialTheme.typography.headlineSmall,
-					fontWeight = FontWeight.Bold
-				)
-				Text(
-					"Panel operativo del tenant",
-					color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
-					style = MaterialTheme.typography.bodySmall
+					text = "Ver ahora",
+					modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+					fontWeight = FontWeight.SemiBold,
+					color = Color(0xFF10B95A)
 				)
 			}
 		}
@@ -203,82 +205,134 @@ private fun DashboardHero(
 }
 
 @Composable
-private fun InsightCard(
+private fun PrimaryActionCard(
 	title: String,
-	value: String,
 	subtitle: String,
-	modifier: Modifier = Modifier
+	badge: String,
+	onClick: () -> Unit
 ) {
 	Card(
-		modifier = modifier,
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+		modifier = Modifier
+			.fillMaxWidth()
+			.clickable(onClick = onClick),
+		shape = RoundedCornerShape(24.dp),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
 	) {
-		Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-			Text(title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-			Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-			Text(subtitle, style = MaterialTheme.typography.bodySmall)
+		Row(
+			modifier = Modifier
+				.fillMaxWidth()
+				.padding(18.dp),
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(14.dp)
+		) {
+			BadgeCircle(label = badge, strong = false)
+			Column(modifier = Modifier.weight(1f)) {
+				Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+				Text(subtitle, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+			}
+			Icon(
+				imageVector = Icons.Outlined.ChevronRight,
+				contentDescription = null,
+				tint = MaterialTheme.colorScheme.outline
+			)
 		}
 	}
 }
 
 @Composable
-private fun ActionCard(action: DashAction, modifier: Modifier = Modifier) {
+private fun SquareActionCard(
+	title: String,
+	subtitle: String,
+	badge: String,
+	onClick: () -> Unit,
+	modifier: Modifier = Modifier,
+) {
 	Card(
 		modifier = modifier
-			.clickable(onClick = action.onClick),
+			.clickable(onClick = onClick),
+		shape = RoundedCornerShape(24.dp),
 		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-		elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+		elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
 	) {
 		Column(
 			modifier = Modifier
-				.fillMaxSize()
-				.height(148.dp)
-				.padding(12.dp),
+				.fillMaxWidth()
+				.height(170.dp)
+				.padding(16.dp),
 			verticalArrangement = Arrangement.SpaceBetween
 		) {
-			Box(
-				modifier = Modifier
-					.size(40.dp)
-					.clip(MaterialTheme.shapes.medium)
-					.background(MaterialTheme.colorScheme.primaryContainer),
-				contentAlignment = Alignment.Center
-			) {
-				Text(action.title.take(1), color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-			}
+			BadgeCircle(label = badge, strong = false)
 			Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-				Text(action.title, fontWeight = FontWeight.Bold)
-				Text(action.subtitle, style = MaterialTheme.typography.bodySmall)
+				Text(title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+				Text(subtitle, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 			}
 		}
 	}
 }
 
 @Composable
-private fun ActionWideCard(action: DashAction) {
+private fun SettingRowCard(
+	title: String,
+	subtitle: String,
+	badge: String,
+	buttonText: String,
+	onClick: () -> Unit,
+	highlight: Boolean = false,
+) {
 	Card(
 		modifier = Modifier
 			.fillMaxWidth()
-			.clickable(onClick = action.onClick),
-		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+			.clickable(onClick = onClick),
+		shape = RoundedCornerShape(22.dp),
+		colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+		elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
 	) {
 		Row(
 			modifier = Modifier
 				.fillMaxWidth()
 				.padding(14.dp),
-			horizontalArrangement = Arrangement.SpaceBetween,
-			verticalAlignment = Alignment.CenterVertically
+			verticalAlignment = Alignment.CenterVertically,
+			horizontalArrangement = Arrangement.spacedBy(12.dp)
 		) {
-			Column(Modifier.weight(1f)) {
-				Text(action.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-				Text(action.subtitle, style = MaterialTheme.typography.bodySmall)
+			BadgeCircle(label = badge, strong = highlight)
+			Column(modifier = Modifier.weight(1f)) {
+				Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+				Text(subtitle, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
 			}
-			Text("Abrir", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+			Surface(
+				shape = RoundedCornerShape(999.dp),
+				color = if (highlight) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+				else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+			) {
+				Text(
+					text = buttonText,
+					modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+					fontWeight = FontWeight.SemiBold,
+					color = if (highlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+				)
+			}
 		}
 	}
 }
 
-private data class DashAction(
-	val title: String,
-	val subtitle: String,
-	val onClick: () -> Unit
-)
+@Composable
+private fun BadgeCircle(label: String, strong: Boolean) {
+	Surface(
+		shape = RoundedCornerShape(18.dp),
+		color = if (strong) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+		else MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+	) {
+		Box(
+			modifier = Modifier.size(if (strong) 52.dp else 50.dp),
+			contentAlignment = Alignment.Center
+		) {
+			Text(
+				text = label,
+				fontWeight = FontWeight.Bold,
+				color = MaterialTheme.colorScheme.primary,
+				style = MaterialTheme.typography.titleMedium
+			)
+		}
+	}
+}

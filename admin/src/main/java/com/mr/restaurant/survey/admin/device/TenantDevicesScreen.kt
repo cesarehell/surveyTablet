@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -30,13 +29,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mr.restaurant.survey.admin.R
 import com.mr.restaurant.survey.admin.ui.AdminUiEvent
+import com.mr.restaurant.survey.admin.ui.DialogCancelButton
+import com.mr.restaurant.survey.admin.ui.DialogConfirmButton
 import com.mr.restaurant.survey.admin.ui.EmptyState
 import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
 import com.mr.restaurant.survey.admin.ui.SimpleTopBar
@@ -107,6 +110,7 @@ class DevicesViewModel @Inject constructor(
 				}
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Tablet actualizada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -137,7 +141,13 @@ fun TenantDevicesScreen(
 	}
 
 	Scaffold(
-		topBar = { SimpleTopBar(title = "Tablets", subtitle = tenantId, onBack = onBack) },
+		topBar = {
+			SimpleTopBar(
+				title = stringResource(R.string.devices_screen_title),
+				subtitle = tenantId,
+				onBack = onBack
+			)
+		},
 		snackbarHost = { SnackbarHost(snackbarHostState) }
 	) { padding ->
 		Column(
@@ -152,8 +162,11 @@ fun TenantDevicesScreen(
 				horizontalArrangement = Arrangement.SpaceBetween,
 				verticalAlignment = Alignment.CenterVertically
 			) {
-				Text("Dispositivos registrados", fontWeight = FontWeight.SemiBold)
-				TextButton(onClick = { vm.load(tenantId) }, enabled = !st.loading) { Text("Actualizar") }
+				Text(stringResource(R.string.devices_registered_title), fontWeight = FontWeight.SemiBold)
+				TextButton(
+					onClick = { vm.load(tenantId) },
+					enabled = !st.loading
+				) { Text(stringResource(R.string.common_refresh)) }
 			}
 
 			st.error?.let {
@@ -167,7 +180,7 @@ fun TenantDevicesScreen(
 				}
 				Spacer(Modifier.weight(1f))
 			} else if (!st.loading && st.items.isEmpty()) {
-				EmptyState("No hay tablets registradas para este tenant.")
+				EmptyState(stringResource(R.string.devices_empty))
 			} else {
 				LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 					items(st.items, key = { it.id }) { device ->
@@ -216,7 +229,7 @@ private fun DeviceCard(
 				verticalAlignment = Alignment.CenterVertically
 			) {
 				Text(
-					text = device.label ?: device.owner ?: "Tablet",
+					text = device.label ?: device.owner ?: stringResource(R.string.devices_default_label),
 					fontWeight = FontWeight.SemiBold,
 					maxLines = 1,
 					overflow = TextOverflow.Ellipsis,
@@ -226,18 +239,25 @@ private fun DeviceCard(
 					selected = device.active,
 					onClick = {},
 					enabled = false,
-					label = { Text(if (device.active) "Activa" else "Inactiva") }
+					label = { Text(if (device.active) stringResource(R.string.common_active) else stringResource(R.string.common_inactive)) }
 				)
 			}
-			Text("Mesero: ${device.assignedWaiterName ?: "-"}")
-			Text("Mesa: ${device.defaultTableNo ?: "-"}")
-			Text("Sucursal: ${device.locationId ?: "-"}", maxLines = 1, overflow = TextOverflow.Ellipsis)
-			Text("Owner: ${device.owner ?: "-"} • Token: …${device.tokenSuffix ?: ""}", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+			Text(stringResource(R.string.devices_waiter, device.assignedWaiterName ?: "-"))
+			Text(stringResource(R.string.devices_table, device.defaultTableNo ?: "-"))
+			Text(
+				stringResource(R.string.devices_location, device.locationId ?: "-"),
+				maxLines = 1,
+				overflow = TextOverflow.Ellipsis
+			)
+			Text(
+				stringResource(R.string.devices_owner_token, device.owner ?: "-", device.tokenSuffix ?: ""),
+				style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+			)
 			Row(
 				modifier = Modifier.fillMaxWidth(),
 				horizontalArrangement = Arrangement.End
 			) {
-				TextButton(onClick = onEdit) { Text("Editar") }
+				TextButton(onClick = onEdit) { Text(stringResource(R.string.common_edit)) }
 			}
 		}
 	}
@@ -256,27 +276,27 @@ private fun EditDeviceDialog(
 
 	AlertDialog(
 		onDismissRequest = onDismiss,
-		title = { Text("Asignar tablet") },
+		title = { Text(stringResource(R.string.devices_assign_dialog_title)) },
 		text = {
 			Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
 				OutlinedTextField(
 					value = label,
 					onValueChange = { label = it },
-					label = { Text("Alias") },
+					label = { Text(stringResource(R.string.devices_alias)) },
 					modifier = Modifier.fillMaxWidth(),
 					singleLine = true
 				)
 				OutlinedTextField(
 					value = waiter,
 					onValueChange = { waiter = it },
-					label = { Text("Mesero asignado") },
+					label = { Text(stringResource(R.string.devices_assigned_waiter)) },
 					modifier = Modifier.fillMaxWidth(),
 					singleLine = true
 				)
 				OutlinedTextField(
 					value = tableNo,
 					onValueChange = { tableNo = it },
-					label = { Text("Mesa por defecto") },
+					label = { Text(stringResource(R.string.devices_default_table)) },
 					modifier = Modifier.fillMaxWidth(),
 					singleLine = true
 				)
@@ -285,16 +305,16 @@ private fun EditDeviceDialog(
 					horizontalArrangement = Arrangement.SpaceBetween,
 					verticalAlignment = Alignment.CenterVertically
 				) {
-					Text("Activa")
+					Text(stringResource(R.string.common_active))
 					Switch(checked = active, onCheckedChange = { active = it })
 				}
 			}
 		},
 		confirmButton = {
-			Button(onClick = { onSave(label, waiter, tableNo, active) }) { Text("Guardar") }
+			DialogConfirmButton(text = stringResource(R.string.common_save)) { onSave(label, waiter, tableNo, active) }
 		},
 		dismissButton = {
-			TextButton(onClick = onDismiss) { Text("Cancelar") }
+			DialogCancelButton(onClick = onDismiss)
 		}
 	)
 }

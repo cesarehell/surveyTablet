@@ -49,6 +49,7 @@ class TenantViewModel @Inject constructor(
 				refreshAfterMutation()
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Tenant creado"))
 			}
+
 			is ApiResult.Err -> {
 				val msg = if ((createRes.cause as? HttpException)?.code() == 409) {
 					"Ya existe ese tenant."
@@ -63,7 +64,16 @@ class TenantViewModel @Inject constructor(
 
 	fun toggle(t: TenantDto) = viewModelScope.launch {
 		val newStatus = if (t.status == TenantStatus.ACTIVE) TenantStatus.INACTIVE else TenantStatus.ACTIVE
-		_state.update { it.copy(loading = true, error = null) }
+		val previousTenants = _state.value.tenants
+		_state.update { current ->
+			current.copy(
+				loading = false,
+				error = null,
+				tenants = current.tenants.map { tenant ->
+					if (tenant.id == t.id) tenant.copy(status = newStatus) else tenant
+				}
+			)
+		}
 
 		when (val res = safeCall { repo.setStatus(t.id, newStatus) }) {
 			is ApiResult.Ok -> {
@@ -77,7 +87,7 @@ class TenantViewModel @Inject constructor(
 			}
 
 			is ApiResult.Err -> {
-				_state.update { it.copy(loading = false) }
+				_state.update { it.copy(loading = false, tenants = previousTenants) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
 			}
 		}

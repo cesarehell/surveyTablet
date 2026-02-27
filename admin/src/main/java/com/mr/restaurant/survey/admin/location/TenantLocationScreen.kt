@@ -2,8 +2,8 @@ package com.mr.restaurant.survey.admin.location
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -12,13 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -26,32 +25,41 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.mr.restaurant.survey.admin.ui.AdminUiEvent
-import com.mr.restaurant.survey.admin.ui.EmptyState
-import com.mr.restaurant.survey.admin.ui.ErrorBanner
-import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import com.mr.restaurant.survey.admin.R
+import com.mr.restaurant.survey.admin.ui.AdminUiEvent
+import com.mr.restaurant.survey.admin.ui.DialogCancelButton
+import com.mr.restaurant.survey.admin.ui.DialogConfirmButton
+import com.mr.restaurant.survey.admin.ui.EmptyState
+import com.mr.restaurant.survey.admin.ui.ErrorBanner
+import com.mr.restaurant.survey.admin.ui.ErrorWithRetry
+import com.mr.restaurant.survey.admin.ui.ReadOnlyStatusChip
+import com.mr.restaurant.survey.core.location.dto.LocationDto
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun TenantLocationsScreen(
@@ -91,25 +99,33 @@ fun TenantLocationsScreen(
 			}
 		}
 	}
-		LaunchedEffect(Unit) {
-			vm.events.collect { event ->
-				when (event) {
-					is AdminUiEvent.ShowError -> {
-						if (showCreate) {
-							createDialogError = event.message
-						} else {
-							snackbarHostState.showSnackbar(event.message)
-						}
+	fun closePairingCodesDialog() {
+		showCodes = false
+		selectedLocationId = null
+		selectedLocationName = null
+		selectedPairingCode = null
+		vm.clearPairingCodes()
+	}
+	LaunchedEffect(Unit) {
+		vm.events.collect { event ->
+			when (event) {
+				is AdminUiEvent.ShowError -> {
+					if (showCreate) {
+						createDialogError = event.message
+					} else {
+						launch { snackbarHostState.showSnackbar(event.message) }
 					}
-					is AdminUiEvent.ShowSuccess -> snackbarHostState.showSnackbar(event.message)
-					AdminUiEvent.CloseDialog -> {
-						showCreate = false
-						createName = ""
-						createCity = ""
-						createBranch = ""
-						createCode = ""
-						createDialogError = null
-					}
+				}
+
+				is AdminUiEvent.ShowSuccess -> launch { snackbarHostState.showSnackbar(event.message) }
+				AdminUiEvent.CloseDialog -> {
+					showCreate = false
+					createName = ""
+					createCity = ""
+					createBranch = ""
+					createCode = ""
+					createDialogError = null
+				}
 
 				is AdminUiEvent.NavigateToTemplateDetail -> Unit
 			}
@@ -130,11 +146,11 @@ fun TenantLocationsScreen(
 				Button(
 					onClick = { showCreate = true },
 					enabled = !st.loading
-				) { Text("Agregar location") }
+				) { Text(stringResource(R.string.locations_add)) }
 			}
 
 			Spacer(Modifier.height(8.dp))
-			Text("Locations de $tenantId", style = MaterialTheme.typography.titleLarge)
+			Text(stringResource(R.string.locations_title, tenantId), style = MaterialTheme.typography.titleLarge)
 
 			st.error?.let {
 				Spacer(Modifier.height(8.dp))
@@ -150,66 +166,38 @@ fun TenantLocationsScreen(
 			Spacer(Modifier.height(12.dp))
 			if (!st.loading && st.locations.isEmpty()) {
 				EmptyState(
-					message = "No hay locations registradas para este tenant.",
+					message = stringResource(R.string.locations_empty),
 					modifier = Modifier.weight(1f)
 				)
 			} else {
 				LazyColumn {
 					items(st.locations, key = { it.id }) { loc ->
-						Row(
-							Modifier
-								.fillMaxWidth()
-								.padding(vertical = 10.dp),
-							horizontalArrangement = Arrangement.SpaceBetween
-						) {
-							Column(Modifier.weight(1f)) {
-								Text(loc.name, style = MaterialTheme.typography.titleMedium)
-								Text(loc.id, style = MaterialTheme.typography.bodySmall)
-								val meta = listOfNotNull(loc.city, loc.branchName).joinToString(" • ")
-								if (meta.isNotBlank()) Text(meta, style = MaterialTheme.typography.bodySmall)
-								Spacer(Modifier.height(4.dp))
-								FilterChip(
-									selected = loc.active,
-									onClick = {},
-									enabled = false,
-									label = { Text(if (loc.active) "Activa" else "Inactiva") }
-								)
+						LocationListItem(
+							location = loc,
+							loading = st.loading,
+							onCodes = {
+								selectedLocationId = loc.id
+								selectedLocationName = loc.name
+								selectedPairingCode = null
+								vm.loadPairingCodes(loc.id)
+								showCodes = true
+							},
+							onEdit = {
+								editTargetId = loc.id
+								editName = loc.name
+								editCity = loc.city.orEmpty()
+								editBranch = loc.branchName.orEmpty()
+								editCode = loc.code.orEmpty()
+								editActive = loc.active
+								editDialogError = null
+								showEdit = true
+							},
+							onDeactivate = {
+								editTargetId = loc.id
+								selectedLocationName = loc.name
+								showDeleteConfirm = true
 							}
-
-							Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-								TextButton(
-									enabled = !st.loading,
-									onClick = {
-										selectedLocationId = loc.id
-										selectedLocationName = loc.name
-										selectedPairingCode = null
-										vm.loadPairingCodes(loc.id)
-										showCodes = true
-									}
-								) { Text("Codes") }
-								TextButton(
-									enabled = !st.loading,
-									onClick = {
-										editTargetId = loc.id
-										editName = loc.name
-										editCity = loc.city.orEmpty()
-										editBranch = loc.branchName.orEmpty()
-										editCode = loc.code.orEmpty()
-										editActive = loc.active
-										editDialogError = null
-										showEdit = true
-									}
-								) { Text("Editar") }
-								TextButton(
-									enabled = !st.loading && loc.active,
-									onClick = {
-										editTargetId = loc.id
-										selectedLocationName = loc.name
-										showDeleteConfirm = true
-									}
-								) { Text("Desactivar") }
-							}
-						}
+						)
 						HorizontalDivider()
 					}
 				}
@@ -219,167 +207,94 @@ fun TenantLocationsScreen(
 
 	// Dialog crear
 	if (showCreate) {
-		AlertDialog(
-			onDismissRequest = {
+		LocationUpsertDialog(
+			title = stringResource(R.string.locations_create_title),
+			error = createDialogError,
+			name = createName,
+			onNameChange = {
+				createName = it
+				createDialogError = null
+			},
+			city = createCity,
+			onCityChange = {
+				createCity = it
+				createDialogError = null
+			},
+			branch = createBranch,
+			onBranchChange = {
+				createBranch = it
+				createDialogError = null
+			},
+			code = createCode,
+			onCodeChange = {
+				createCode = it
+				createDialogError = null
+			},
+			showActiveToggle = false,
+			active = true,
+			onActiveChange = {},
+			confirmText = stringResource(R.string.common_create),
+			confirmEnabled = createName.isNotBlank() && !st.loading,
+			onDismiss = {
 				showCreate = false
 				createDialogError = null
 			},
-			title = { Text("Crear location") },
-			text = {
-				Column {
-					createDialogError?.let {
-						ErrorBanner(message = it)
-						Spacer(Modifier.height(8.dp))
-					}
-					OutlinedTextField(
-						createName,
-						{
-							createName = it
-							createDialogError = null
-						},
-						label = { Text("Nombre") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						createCity,
-						{
-							createCity = it
-							createDialogError = null
-						},
-						label = { Text("Ciudad (opcional)") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						createBranch,
-						{
-							createBranch = it
-							createDialogError = null
-						},
-						label = { Text("Branch (opcional)") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						createCode,
-						{
-							createCode = it
-							createDialogError = null
-						},
-						label = { Text("Code (opcional)") },
-						singleLine = true
-					)
-				}
-			},
-			confirmButton = {
-				Button(
-					onClick = {
-						createDialogError = null
-						vm.create(
-							tenantId = tenantId,
-							name = createName,
-							city = createCity.takeIf { it.isNotBlank() },
-							branchName = createBranch.takeIf { it.isNotBlank() },
-							code = createCode.takeIf { it.isNotBlank() }
-						)
-					},
-					enabled = createName.isNotBlank() && !st.loading
-				) { Text("Crear") }
-			},
-			dismissButton = {
-				TextButton(onClick = {
-					showCreate = false
-					createDialogError = null
-				}) { Text("Cancelar") }
+			onConfirm = {
+				createDialogError = null
+				vm.create(
+					tenantId = tenantId,
+					name = createName,
+					city = createCity.takeIf { it.isNotBlank() },
+					branchName = createBranch.takeIf { it.isNotBlank() },
+					code = createCode.takeIf { it.isNotBlank() }
+				)
 			}
 		)
 	}
 
 	if (showEdit) {
 		val targetId = editTargetId
-		AlertDialog(
-			onDismissRequest = {
-				showEdit = false
+		LocationUpsertDialog(
+			title = stringResource(R.string.locations_edit_title),
+			error = editDialogError,
+			name = editName,
+			onNameChange = {
+				editName = it
 				editDialogError = null
 			},
-			title = { Text("Editar location") },
-			text = {
-				Column {
-					editDialogError?.let {
-						ErrorBanner(message = it)
-						Spacer(Modifier.height(8.dp))
-					}
-					OutlinedTextField(
-						editName,
-						{
-							editName = it
-							editDialogError = null
-						},
-						label = { Text("Nombre") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						editCity,
-						{
-							editCity = it
-							editDialogError = null
-						},
-						label = { Text("Ciudad (opcional)") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						editBranch,
-						{
-							editBranch = it
-							editDialogError = null
-						},
-						label = { Text("Branch (opcional)") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(8.dp))
-					OutlinedTextField(
-						editCode,
-						{
-							editCode = it
-							editDialogError = null
-						},
-						label = { Text("Code (opcional)") },
-						singleLine = true
-					)
-					Spacer(Modifier.height(12.dp))
-					Row(
-						modifier = Modifier.fillMaxWidth(),
-						horizontalArrangement = Arrangement.SpaceBetween,
-						verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-					) {
-						Text("Activa")
-						Switch(checked = editActive, onCheckedChange = { editActive = it })
-					}
-				}
+			city = editCity,
+			onCityChange = {
+				editCity = it
+				editDialogError = null
 			},
-			confirmButton = {
-				Button(
-					onClick = {
-						val id = targetId ?: return@Button
-						editDialogError = null
-						vm.updateLocation(
-							locationId = id,
-							name = editName,
-							city = editCity.takeIf { it.isNotBlank() },
-							branchName = editBranch.takeIf { it.isNotBlank() },
-							code = editCode.takeIf { it.isNotBlank() },
-							active = editActive
-						)
-						showEdit = false
-					},
-					enabled = editName.isNotBlank() && !st.loading && targetId != null
-				) { Text("Guardar") }
+			branch = editBranch,
+			onBranchChange = {
+				editBranch = it
+				editDialogError = null
 			},
-			dismissButton = {
-				TextButton(onClick = { showEdit = false }) { Text("Cancelar") }
+			code = editCode,
+			onCodeChange = {
+				editCode = it
+				editDialogError = null
+			},
+			showActiveToggle = true,
+			active = editActive,
+			onActiveChange = { editActive = it },
+			confirmText = stringResource(R.string.common_save),
+			confirmEnabled = editName.isNotBlank() && !st.loading && targetId != null,
+			onDismiss = { showEdit = false },
+			onConfirm = {
+				val id = targetId ?: return@LocationUpsertDialog
+				editDialogError = null
+				vm.updateLocation(
+					locationId = id,
+					name = editName,
+					city = editCity.takeIf { it.isNotBlank() },
+					branchName = editBranch.takeIf { it.isNotBlank() },
+					code = editCode.takeIf { it.isNotBlank() },
+					active = editActive
+				)
+				showEdit = false
 			}
 		)
 	}
@@ -388,94 +303,60 @@ fun TenantLocationsScreen(
 		val targetId = editTargetId
 		AlertDialog(
 			onDismissRequest = { showDeleteConfirm = false },
-			title = { Text("Desactivar location") },
+			title = { Text(stringResource(R.string.locations_deactivate_title)) },
 			text = {
-				Text("La location ${selectedLocationName ?: ""} se marcará como inactiva (soft delete).")
+				Text(stringResource(R.string.locations_deactivate_message, selectedLocationName ?: ""))
 			},
 			confirmButton = {
-				Button(
+				DialogConfirmButton(
+					text = stringResource(R.string.common_deactivate),
+					enabled = !st.loading && targetId != null,
 					onClick = {
-						val id = targetId ?: return@Button
+						val id = targetId ?: return@DialogConfirmButton
 						vm.softDeleteLocation(id)
 						showDeleteConfirm = false
-					},
-					enabled = !st.loading && targetId != null
-				) { Text("Desactivar") }
+					}
+				)
 			},
 			dismissButton = {
-				TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancelar") }
+				DialogCancelButton(onClick = { showDeleteConfirm = false })
 			}
 		)
 	}
 
 	if (showCodes) {
-		val title = "Pairing codes • ${selectedLocationName ?: ""}".trim()
+		val title = stringResource(R.string.locations_pairing_title, selectedLocationName ?: "")
 		val selectedId = selectedLocationId
 
-			AlertDialog(
-			onDismissRequest = {
-				showCodes = false
-				selectedLocationId = null
-				selectedLocationName = null
-				selectedPairingCode = null
-				vm.clearPairingCodes()
-			},
-			title = { Text(title) },
-				text = {
-					when {
-						st.pairingCodesLoading -> Text("Cargando…")
-						st.pairingCodesError != null -> {
-							val pairingError = st.pairingCodesError
-							if (pairingError != null) {
-								Text(
-									pairingError,
-									color = MaterialTheme.colorScheme.error
-								)
-							}
-						}
-
-						st.pairingCodes.isEmpty() -> Text("No hay códigos (se generarán al solicitar).")
-						else -> PairingCodesContent(
-							codes = st.pairingCodes.map { it.code },
-							selectedCode = selectedPairingCode,
-							onSelectCode = { selectedPairingCode = it }
-						)
-					}
-				},
-				confirmButton = {
-					if (st.pairingCodesError != null && selectedId != null) {
-						TextButton(onClick = { vm.loadPairingCodes(selectedId) }) { Text("Reintentar") }
-					}
-				},
-				dismissButton = {
-					TextButton(onClick = {
-						showCodes = false
-						selectedLocationId = null
-						selectedLocationName = null
-						selectedPairingCode = null
-						vm.clearPairingCodes()
-					}) { Text("Cerrar") }
-				}
-			)
-		}
+		PairingCodesDialog(
+			title = title,
+			loading = st.pairingCodesLoading,
+			error = st.pairingCodesError,
+			codes = st.pairingCodes.map { it.code },
+			selectedCode = selectedPairingCode,
+			onSelectCode = { selectedPairingCode = it },
+			onRetry = if (selectedId != null) ({ vm.loadPairingCodes(selectedId) }) else null,
+			onDismiss = ::closePairingCodesDialog
+		)
+	}
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
+@Suppress("DEPRECATION")
 private fun PairingCodesContent(
 	codes: List<String>,
 	selectedCode: String?,
 	onSelectCode: (String) -> Unit
 ) {
 	val clipboard = LocalClipboardManager.current
-	val qrBitmap = remember(selectedCode) {
-		selectedCode?.let { generateQrBitmap(it, size = 560) }
+	val qrBitmap by produceState<Bitmap?>(initialValue = null, key1 = selectedCode) {
+		value = selectedCode?.let { code ->
+			withContext(Dispatchers.Default) { generateQrBitmap(code, size = 560) }
+		}
 	}
 	Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-		Text(
-			"Usa este código (o QR) para configurar la tablet.",
-			style = MaterialTheme.typography.bodySmall
-		)
+		Text(stringResource(R.string.locations_pairing_help), style = MaterialTheme.typography.bodySmall)
 		FlowRow(
 			horizontalArrangement = Arrangement.spacedBy(8.dp),
 			verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -487,21 +368,24 @@ private fun PairingCodesContent(
 			}
 		}
 		selectedCode?.let {
-			Text("Código seleccionado: $it", style = MaterialTheme.typography.labelLarge)
+			Text(
+				stringResource(R.string.locations_pairing_selected_code, it),
+				style = MaterialTheme.typography.labelLarge
+			)
 			Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 				Button(onClick = { clipboard.setText(AnnotatedString(it)) }) {
-					Text("Copiar código")
+					Text(stringResource(R.string.locations_copy_code))
 				}
 				TextButton(onClick = { onSelectCode(it) }) {
-					Text("Mantener")
+					Text(stringResource(R.string.locations_keep_code))
 				}
 			}
 		}
 		Box(modifier = Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
 			if (qrBitmap != null) {
 				Image(
-					bitmap = qrBitmap.asImageBitmap(),
-					contentDescription = "QR pairing code",
+					bitmap = qrBitmap!!.asImageBitmap(),
+					contentDescription = stringResource(R.string.locations_qr_content_description),
 					modifier = Modifier.size(260.dp)
 				)
 			}
@@ -523,3 +407,178 @@ private fun generateQrBitmap(content: String, size: Int): Bitmap? = runCatching 
 		}
 	}
 }.getOrNull()
+
+@Composable
+private fun LocationListItem(
+	location: LocationDto,
+	loading: Boolean,
+	onCodes: () -> Unit,
+	onEdit: () -> Unit,
+	onDeactivate: () -> Unit
+) {
+	Row(
+		Modifier
+			.fillMaxWidth()
+			.padding(vertical = 10.dp),
+		horizontalArrangement = Arrangement.SpaceBetween
+	) {
+		Column(Modifier.weight(1f)) {
+			Text(location.name, style = MaterialTheme.typography.titleMedium)
+			Text(location.id, style = MaterialTheme.typography.bodySmall)
+			val meta = listOfNotNull(location.city, location.branchName).joinToString(" • ")
+			if (meta.isNotBlank()) Text(meta, style = MaterialTheme.typography.bodySmall)
+			Spacer(Modifier.height(4.dp))
+			ReadOnlyStatusChip(
+				active = location.active,
+				activeLabel = stringResource(R.string.common_active),
+				inactiveLabel = stringResource(R.string.common_inactive)
+			)
+		}
+
+		Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
+			TextButton(enabled = !loading, onClick = onCodes) { Text(stringResource(R.string.locations_codes)) }
+			TextButton(enabled = !loading, onClick = onEdit) { Text(stringResource(R.string.common_edit)) }
+			TextButton(enabled = !loading && location.active, onClick = onDeactivate) {
+				Text(stringResource(R.string.common_deactivate))
+			}
+		}
+	}
+}
+
+@Composable
+private fun LocationFormFields(
+	name: String,
+	onNameChange: (String) -> Unit,
+	city: String,
+	onCityChange: (String) -> Unit,
+	branch: String,
+	onBranchChange: (String) -> Unit,
+	code: String,
+	onCodeChange: (String) -> Unit
+) {
+	OutlinedTextField(
+		value = name,
+		onValueChange = onNameChange,
+		label = { Text(stringResource(R.string.locations_name)) },
+		singleLine = true
+	)
+	Spacer(Modifier.height(8.dp))
+	OutlinedTextField(
+		value = city,
+		onValueChange = onCityChange,
+		label = { Text(stringResource(R.string.locations_city_optional)) },
+		singleLine = true
+	)
+	Spacer(Modifier.height(8.dp))
+	OutlinedTextField(
+		value = branch,
+		onValueChange = onBranchChange,
+		label = { Text(stringResource(R.string.locations_branch_optional)) },
+		singleLine = true
+	)
+	Spacer(Modifier.height(8.dp))
+	OutlinedTextField(
+		value = code,
+		onValueChange = onCodeChange,
+		label = { Text(stringResource(R.string.locations_code_optional)) },
+		singleLine = true
+	)
+}
+
+@Composable
+private fun LocationUpsertDialog(
+	title: String,
+	error: String?,
+	name: String,
+	onNameChange: (String) -> Unit,
+	city: String,
+	onCityChange: (String) -> Unit,
+	branch: String,
+	onBranchChange: (String) -> Unit,
+	code: String,
+	onCodeChange: (String) -> Unit,
+	showActiveToggle: Boolean,
+	active: Boolean,
+	onActiveChange: (Boolean) -> Unit,
+	confirmText: String,
+	confirmEnabled: Boolean,
+	onDismiss: () -> Unit,
+	onConfirm: () -> Unit
+) {
+	AlertDialog(
+		onDismissRequest = onDismiss,
+		title = { Text(title) },
+		text = {
+			Column {
+				error?.let {
+					ErrorBanner(message = it)
+					Spacer(Modifier.height(8.dp))
+				}
+				LocationFormFields(
+					name = name,
+					onNameChange = onNameChange,
+					city = city,
+					onCityChange = onCityChange,
+					branch = branch,
+					onBranchChange = onBranchChange,
+					code = code,
+					onCodeChange = onCodeChange
+				)
+				if (showActiveToggle) {
+					Spacer(Modifier.height(12.dp))
+					Row(
+						modifier = Modifier.fillMaxWidth(),
+						horizontalArrangement = Arrangement.SpaceBetween,
+						verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+					) {
+						Text(stringResource(R.string.common_active))
+						Switch(checked = active, onCheckedChange = onActiveChange)
+					}
+				}
+			}
+		},
+		confirmButton = {
+			DialogConfirmButton(text = confirmText, enabled = confirmEnabled, onClick = onConfirm)
+		},
+		dismissButton = {
+			DialogCancelButton(onClick = onDismiss)
+		}
+	)
+}
+
+@Composable
+private fun PairingCodesDialog(
+	title: String,
+	loading: Boolean,
+	error: String?,
+	codes: List<String>,
+	selectedCode: String?,
+	onSelectCode: (String) -> Unit,
+	onRetry: (() -> Unit)?,
+	onDismiss: () -> Unit
+) {
+	AlertDialog(
+		onDismissRequest = onDismiss,
+		title = { Text(title) },
+		text = {
+			when {
+				loading -> Text(stringResource(R.string.locations_pairing_loading))
+				error != null -> Text(error, color = MaterialTheme.colorScheme.error)
+				codes.isEmpty() -> Text(stringResource(R.string.locations_pairing_empty))
+				else -> PairingCodesContent(
+					codes = codes,
+					selectedCode = selectedCode,
+					onSelectCode = onSelectCode
+				)
+			}
+		},
+		confirmButton = {
+			if (error != null && onRetry != null) {
+				TextButton(onClick = onRetry) { Text(stringResource(R.string.common_refresh)) }
+			}
+		},
+		dismissButton = {
+			TextButton(onClick = onDismiss) { Text(stringResource(R.string.common_close)) }
+		}
+	)
+}

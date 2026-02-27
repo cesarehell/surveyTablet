@@ -50,6 +50,7 @@ class TemplateDetailViewModel @Inject constructor(
 				_state.update { it.copy(loading = false, error = null, full = loadRes.value) }
 				true
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(loadRes.message))
@@ -115,6 +116,7 @@ class TemplateDetailViewModel @Inject constructor(
 				if (!reloadOrEmitError(templateId)) return@launch
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Pregunta actualizada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -129,6 +131,7 @@ class TemplateDetailViewModel @Inject constructor(
 				if (!reloadOrEmitError(templateId)) return@launch
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Pregunta eliminada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -207,6 +210,7 @@ class TemplateDetailViewModel @Inject constructor(
 				if (!reloadOrEmitError(templateId)) return@launch
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Opción agregada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -240,6 +244,7 @@ class TemplateDetailViewModel @Inject constructor(
 				if (!reloadOrEmitError(templateId)) return@launch
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Opción actualizada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
@@ -254,6 +259,7 @@ class TemplateDetailViewModel @Inject constructor(
 				if (!reloadOrEmitError(templateId)) return@launch
 				_events.tryEmit(AdminUiEvent.ShowSuccess("Opción eliminada"))
 			}
+
 			is ApiResult.Err -> {
 				_state.update { it.copy(loading = false) }
 				_events.tryEmit(AdminUiEvent.ShowError(res.message))
