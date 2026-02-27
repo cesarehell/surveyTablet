@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,6 +24,7 @@ class AdminPushRegistrar @Inject constructor(
 	@ApplicationContext private val context: Context,
 ) {
 	private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	private val inFlightRegisterKey = AtomicReference<String?>(null)
 
 	fun bindTenant(tenantId: String) {
 		prefs.saveTenantId(tenantId)
@@ -35,7 +37,11 @@ class AdminPushRegistrar @Inject constructor(
 		prefs.saveLastToken(token)
 		val tenantId = prefs.getTenantId() ?: run {
 			Log.i(TAG, "Token FCM recibido, pero no hay tenant seleccionado aún")
-			prefs.saveLastRegistrationResult(topic = null, pushSubscribed = null, error = "Token recibido sin tenant seleccionado")
+			prefs.saveLastRegistrationResult(
+				topic = null,
+				pushSubscribed = null,
+				error = "Token recibido sin tenant seleccionado"
+			)
 			return
 		}
 		registerToken(tenantId, token)
@@ -49,7 +55,10 @@ class AdminPushRegistrar @Inject constructor(
 	private fun registerCurrentTokenForTenant(tenantId: String) {
 		val hasFirebase = runCatching { FirebaseApp.getApps(context).isNotEmpty() }.getOrDefault(false)
 		if (!hasFirebase) {
-			Log.w(TAG, "Firebase no inicializado en admin. Falta google-services.json compatible con el package del app")
+			Log.w(
+				TAG,
+				"Firebase no inicializado en admin. Falta google-services.json compatible con el package del app"
+			)
 			prefs.saveLastRegistrationResult(topic = null, pushSubscribed = null, error = "Firebase no inicializado")
 			return
 		}
@@ -71,37 +80,62 @@ class AdminPushRegistrar @Inject constructor(
 			}
 			.addOnFailureListener { err ->
 				Log.e(TAG, "No se pudo obtener token FCM para tenant=$tenantId", err)
-				prefs.saveLastRegistrationResult(topic = topic, pushSubscribed = null, error = err.message ?: "No se pudo obtener token FCM")
+				prefs.saveLastRegistrationResult(
+					topic = topic,
+					pushSubscribed = null,
+					error = err.message ?: "No se pudo obtener token FCM"
+				)
 			}
 	}
 
 	private fun registerToken(tenantId: String, token: String) {
+		if (prefs.shouldSkipBackendRegister(tenantId = tenantId, token = token)) {
+			Log.d(TAG, "Registro backend omitido por cooldown tenant=$tenantId")
+			return
+		}
+		val registerKey = "$tenantId::$token"
+		if (!inFlightRegisterKey.compareAndSet(null, registerKey)) {
+			if (inFlightRegisterKey.get() == registerKey) {
+				Log.d(TAG, "Registro backend ya en curso tenant=$tenantId")
+			}
+			return
+		}
 		scope.launch {
-			val req = RegisterDeviceRequest(
-				tenantId = tenantId,
-				token = token,
-				owner = "AdminApp",
-				platform = "ANDROID",
-				role = "OWNER",
-				deviceType = "ADMIN"
-			)
-			when (val res = safeCall { deviceApi.register(req) }) {
-				is ApiResult.Ok -> {
-					prefs.saveLastRegistrationResult(
-						topic = res.value.topic,
-						pushSubscribed = res.value.pushSubscribed,
-						error = null
-					)
-					Log.i(TAG, "FCM admin registrado tenant=$tenantId topic=${res.value.topic} subscribed=${res.value.pushSubscribed}")
+			try {
+				prefs.markBackendRegisterAttempt(tenantId = tenantId, token = token)
+				val req = RegisterDeviceRequest(
+					tenantId = tenantId,
+					token = token,
+					owner = "AdminApp",
+					platform = "ANDROID",
+					role = "OWNER",
+					deviceType = "ADMIN"
+				)
+				when (val res = safeCall { deviceApi.register(req) }) {
+					is ApiResult.Ok -> {
+						prefs.markBackendRegistered(tenantId = tenantId, token = token)
+						prefs.saveLastRegistrationResult(
+							topic = res.value.topic,
+							pushSubscribed = res.value.pushSubscribed,
+							error = null
+						)
+						Log.i(
+							TAG,
+							"FCM admin registrado tenant=$tenantId topic=${res.value.topic} subscribed=${res.value.pushSubscribed}"
+						)
+					}
+
+					is ApiResult.Err -> {
+						prefs.saveLastRegistrationResult(
+							topic = topicForTenant(tenantId),
+							pushSubscribed = false,
+							error = res.message
+						)
+						Log.e(TAG, "Error registrando token admin tenant=$tenantId: ${res.message}")
+					}
 				}
-				is ApiResult.Err -> {
-					prefs.saveLastRegistrationResult(
-						topic = topicForTenant(tenantId),
-						pushSubscribed = false,
-						error = res.message
-					)
-					Log.e(TAG, "Error registrando token admin tenant=$tenantId: ${res.message}")
-				}
+			} finally {
+				inFlightRegisterKey.compareAndSet(registerKey, null)
 			}
 		}
 	}

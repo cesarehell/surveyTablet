@@ -47,6 +47,30 @@ class AdminPushPrefs @Inject constructor(
 			.apply()
 	}
 
+	fun shouldSkipBackendRegister(
+		tenantId: String,
+		token: String,
+		cooldownMs: Long = 10 * 60 * 1000L
+	): Boolean {
+		val lastTenant = prefs.getString(KEY_LAST_REGISTER_TENANT, null)
+		val lastToken = prefs.getString(KEY_LAST_REGISTER_TOKEN, null)
+		val lastAt = prefs.getLong(KEY_LAST_REGISTER_AT, 0L)
+		val recentlyRegistered = lastAt > 0L && (System.currentTimeMillis() - lastAt) < cooldownMs
+		return lastTenant == tenantId && lastToken == token && recentlyRegistered
+	}
+
+	fun markBackendRegistered(tenantId: String, token: String) {
+		markBackendRegisterAttempt(tenantId, token)
+	}
+
+	fun markBackendRegisterAttempt(tenantId: String, token: String) {
+		prefs.edit()
+			.putString(KEY_LAST_REGISTER_TENANT, tenantId)
+			.putString(KEY_LAST_REGISTER_TOKEN, token)
+			.putLong(KEY_LAST_REGISTER_AT, System.currentTimeMillis())
+			.apply()
+	}
+
 	fun getLastTopic(): String? = prefs.getString(KEY_LAST_TOPIC, null)
 	fun getLastError(): String? = prefs.getString(KEY_LAST_ERROR, null)
 	fun getLastLocalTopic(): String? = prefs.getString(KEY_LAST_LOCAL_TOPIC, null)
@@ -62,6 +86,9 @@ class AdminPushPrefs @Inject constructor(
 			.remove(KEY_LAST_LOCAL_TOPIC)
 			.remove(KEY_LAST_LOCAL_TOPIC_ERROR)
 			.remove(KEY_LAST_PUSH_SUBSCRIBED)
+			.remove(KEY_LAST_REGISTER_TENANT)
+			.remove(KEY_LAST_REGISTER_TOKEN)
+			.remove(KEY_LAST_REGISTER_AT)
 			.remove(KEY_LAST_UPDATED_AT)
 			.apply()
 	}
@@ -98,6 +125,9 @@ class AdminPushPrefs @Inject constructor(
 		const val KEY_LAST_LOCAL_TOPIC = "last_local_topic"
 		const val KEY_LAST_LOCAL_TOPIC_ERROR = "last_local_topic_error"
 		const val KEY_LAST_PUSH_SUBSCRIBED = "last_push_subscribed"
+		const val KEY_LAST_REGISTER_TENANT = "last_register_tenant"
+		const val KEY_LAST_REGISTER_TOKEN = "last_register_token"
+		const val KEY_LAST_REGISTER_AT = "last_register_at"
 		const val KEY_LAST_UPDATED_AT = "last_updated_at"
 		const val KEY_RECENT_ALERT_IDS = "recent_alert_ids"
 		const val SEP = "|"

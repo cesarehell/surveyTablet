@@ -11,7 +11,9 @@ import com.mr.restaurant.survey.core.metrics.dto.MetricsSummaryDto
 import com.mr.restaurant.survey.core.net.ApiResult
 import com.mr.restaurant.survey.core.net.safeCall
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -39,51 +41,136 @@ class MetricsViewModel @Inject constructor(
 ) : ViewModel() {
 	private val _state = MutableStateFlow(MetricsUiState())
 	val state = _state.asStateFlow()
+	private var loadJob: Job? = null
+	private var refreshJob: Job? = null
+
+	@Volatile
+	private var activeRequestId: Long = 0
+	private var loadedTenantId: String? = null
 
 	private val _events = MutableSharedFlow<AdminUiEvent>(extraBufferCapacity = 8)
 	val events: SharedFlow<AdminUiEvent> = _events.asSharedFlow()
 
-	fun load(tenantId: String) = viewModelScope.launch {
-		_state.update { it.copy(loading = true, error = null, partialErrors = emptyList()) }
+	fun load(tenantId: String, forceFull: Boolean = false) {
+		if (!forceFull && loadedTenantId == tenantId && _state.value.summary != null) return
+		refreshJob?.cancel()
+		loadJob?.cancel()
+		val requestId = nextRequestId()
+		loadJob = viewModelScope.launch {
+			updateIfCurrent(requestId) { it.copy(loading = true, error = null, partialErrors = emptyList()) }
+			val eventShown = AtomicBoolean(false)
 
-		supervisorScope {
-			val summaryDef = async { safeCall { api.summary(tenantId) } }
-			val dailyDef = async { safeCall { api.daily(tenantId) } }
-			val tablesDef = async { safeCall { api.topTables(tenantId) } }
-			val waitersDef = async { safeCall { api.topWaiters(tenantId) } }
-			val rulesDef = async { safeCall { api.rules(tenantId) } }
-
-			val summaryRes = summaryDef.await()
-			val dailyRes = dailyDef.await()
-			val tablesRes = tablesDef.await()
-			val waitersRes = waitersDef.await()
-			val rulesRes = rulesDef.await()
-
-			val summary = (summaryRes as? ApiResult.Ok)?.value
-			val errors = buildList {
-				(summaryRes as? ApiResult.Err)?.message?.let(::add)
-				(dailyRes as? ApiResult.Err)?.message?.let(::add)
-				(tablesRes as? ApiResult.Err)?.message?.let(::add)
-				(waitersRes as? ApiResult.Err)?.message?.let(::add)
-				(rulesRes as? ApiResult.Err)?.message?.let(::add)
-			}.distinct()
-
-			_state.update { st ->
-				st.copy(
-					loading = false,
-					summary = summary ?: st.summary,
-					daily = (dailyRes as? ApiResult.Ok)?.value ?: st.daily,
-					topTables = (tablesRes as? ApiResult.Ok)?.value ?: st.topTables,
-					topWaiters = (waitersRes as? ApiResult.Ok)?.value ?: st.topWaiters,
-					rules = (rulesRes as? ApiResult.Ok)?.value ?: st.rules,
-					error = if (summary == null) errors.firstOrNull() else null,
-					partialErrors = if (summary != null) errors else emptyList()
-				)
+			suspend fun registerError(message: String) {
+				updateIfCurrent(requestId) { st ->
+					if (st.summary == null) st.copy(error = message)
+					else st.copy(partialErrors = (st.partialErrors + message).distinct())
+				}
+				if (eventShown.compareAndSet(false, true)) {
+					_events.tryEmit(AdminUiEvent.ShowError(message))
+				}
 			}
 
-			if (summary != null && errors.isNotEmpty()) {
-				_events.tryEmit(AdminUiEvent.ShowError(errors.first()))
+			when (val summary = safeCall { api.summary(tenantId) }) {
+				is ApiResult.Ok -> updateIfCurrent(requestId) { st ->
+					loadedTenantId = tenantId
+					st.copy(summary = summary.value, error = null)
+				}
+
+				is ApiResult.Err -> {
+					registerError(summary.message)
+					updateIfCurrent(requestId) { it.copy(loading = false) }
+					return@launch
+				}
 			}
+
+			val pendingCalls = AtomicInteger(4)
+			suspend fun finishCall() {
+				if (pendingCalls.decrementAndGet() == 0) {
+					updateIfCurrent(requestId) { it.copy(loading = false) }
+				}
+			}
+
+			supervisorScope {
+				launch {
+					try {
+						when (val res = safeCall { api.daily(tenantId) }) {
+							is ApiResult.Ok -> updateIfCurrent(requestId) { st -> st.copy(daily = res.value) }
+							is ApiResult.Err -> registerError(res.message)
+						}
+					} finally {
+						finishCall()
+					}
+				}
+
+				launch {
+					try {
+						when (val res = safeCall { api.topTables(tenantId) }) {
+							is ApiResult.Ok -> updateIfCurrent(requestId) { st -> st.copy(topTables = res.value) }
+							is ApiResult.Err -> registerError(res.message)
+						}
+					} finally {
+						finishCall()
+					}
+				}
+
+				launch {
+					try {
+						when (val res = safeCall { api.topWaiters(tenantId) }) {
+							is ApiResult.Ok -> updateIfCurrent(requestId) { st -> st.copy(topWaiters = res.value) }
+							is ApiResult.Err -> registerError(res.message)
+						}
+					} finally {
+						finishCall()
+					}
+				}
+
+				launch {
+					try {
+						when (val res = safeCall { api.rules(tenantId) }) {
+							is ApiResult.Ok -> updateIfCurrent(requestId) { st -> st.copy(rules = res.value) }
+							is ApiResult.Err -> registerError(res.message)
+						}
+					} finally {
+						finishCall()
+					}
+				}
+			}
+		}
+	}
+
+	fun refresh(tenantId: String) {
+		refreshJob?.cancel()
+		val requestId = nextRequestId()
+		refreshJob = viewModelScope.launch {
+			updateIfCurrent(requestId) { it.copy(loading = true, error = null) }
+			when (val res = safeCall { api.summary(tenantId) }) {
+				is ApiResult.Ok -> updateIfCurrent(requestId) { st ->
+					st.copy(
+						loading = false,
+						summary = res.value,
+						error = null
+					)
+				}
+
+				is ApiResult.Err -> {
+					updateIfCurrent(requestId) { it.copy(loading = false, error = res.message) }
+					_events.tryEmit(AdminUiEvent.ShowError(res.message))
+				}
+			}
+		}
+	}
+
+	private fun nextRequestId(): Long {
+		activeRequestId += 1
+		return activeRequestId
+	}
+
+	private inline fun updateIfCurrent(
+		requestId: Long,
+		transform: (MetricsUiState) -> MetricsUiState
+	) {
+		if (requestId == activeRequestId) {
+			_state.update(transform)
 		}
 	}
 }
